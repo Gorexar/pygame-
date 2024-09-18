@@ -26,7 +26,7 @@ wall_image = pygame.image.load(os.path.join(image_dir, 'wall_image.png'))
 goal_image = pygame.image.load(os.path.join(image_dir, 'goal.png'))
 border_image = pygame.image.load(os.path.join(image_dir, 'brick_border.png'))
 player_image = pygame.image.load(os.path.join(image_dir, 'cat.png'))  # Load player image
-npc_image = pygame.image.load(os.path.join(image_dir, 'Skeleton.png'))  # Load NPC image
+npc_image = pygame.image.load(os.path.join(image_dir, 'wolf.png'))  # Load NPC image
 item_image = pygame.image.load(os.path.join(image_dir, 'goal.png'))  # Load item image
 
 # resize the images in-program (too lazy to edit source image)
@@ -174,7 +174,7 @@ def check_item_pickup():
 
     if player_pos == item_pos:
         
-        if random.randint(1, 2) == 1: #10% of the time you win and game
+        if random.randint(1, 4) == 1: #10% of the time you win and game
             game_win = True
 
         else:
@@ -199,7 +199,7 @@ def display_game_over():
     screen.blit(npc_image, (0, 0))
     screen.blit(text, text_rect)
     pygame.display.flip()
-    pygame.time.wait(3) #CHANGE BACK TO 10k
+    pygame.time.wait(3000) 
 
     
 
@@ -208,7 +208,7 @@ def display_game_win():
     font = pygame.font.Font(None, 74)
     global player_image
     player_image = pygame.transform.scale(player_image, (WIDTH, HEIGHT))
-    text = font.render("You WIN! Press any key to restart!", True, (0, 255, 0))  # Green color text
+    text = font.render("You caught the buny!! Press any key to restart!", True, (0, 255, 0))  # Green color text
     text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
     screen.blit(player_image, (0, 0))
     screen.blit(text, text_rect)
