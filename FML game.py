@@ -1,4 +1,4 @@
-## work on fixing closing and restart fix NPC speed add guard-rails on where npc and items can move fix win and lose screens
+## still fix game over and win open/close game restart stuff
 
 
 
@@ -90,6 +90,13 @@ game_over = False
 item_pos = [2,3]
         #allows the player to move X entity in this case the player one) i think?
 
+def initialize_game():
+    global player_pos, item_pos, game_win, game_over
+    player_pos = [1, 1]  # Example starting position
+    item_pos = [random.randint(1, 24), random.randint(1, 24)]  # Example item position
+    game_win = False
+    game_over = False
+     
 
 def is_move_valid(new_row, new_col):
     # lazy maze size
@@ -173,7 +180,7 @@ def check_item_pickup():
 
     if player_pos == item_pos:
         
-        if random.randint(1, 4) == 1: #10% of the time you win and game
+        if random.randint(1, 1) == 1: #10% of the time you win and game
             game_win = True
 
         else:
@@ -198,6 +205,20 @@ def display_game_over():
     screen.blit(npc_image, (0, 0))
     screen.blit(text, text_rect)
     pygame.display.flip()
+
+    # Wait for key press to restart
+    waiting_for_keypress = True
+    while waiting_for_keypress:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                waiting_for_keypress = False
+            elif event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+    text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+    screen.blit(npc_image, (0, 0))
+    screen.blit(text, text_rect)
+    pygame.display.flip()
     pygame.time.wait(3000) 
 
     
@@ -211,8 +232,22 @@ def display_game_win():
     text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
     screen.blit(player_image, (0, 0))
     screen.blit(text, text_rect)
+
+    waiting_for_keypress = True
+    while waiting_for_keypress:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                waiting_for_keypress = False
+            elif event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+    text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+    screen.blit(player_image, (0, 0))
+    screen.blit(text, text_rect)
     pygame.display.flip()
     pygame.time.wait(3000)
+
+
 
                 
     
@@ -223,7 +258,7 @@ def check_item_pickup_NPC():
 
     for npc_pos in npc_positions:
         if npc_pos == item_pos:
-            if random.randint(1, 10) == 1:  # 10% chance to win
+            if random.randint(1, 1) == 1:  # 10% chance to win
                 print("The monster got the bunny!")
                 game_over = True
                 break  # Trigger game over
@@ -274,8 +309,13 @@ def draw_maze():
             else:
                 screen.blit(wall_image, (x, y))
 
+def main():
+    main()
 
+def main():
+    initialize_game()
 
+# Main game loop
 running = True
 while running:
     if game_win:
@@ -316,9 +356,6 @@ while running:
     # Update the display
     pygame.display.flip()
 
-    # Cap the frame rate
+    # Cap the frame rate aka game speed?
     clock.tick(10)
-
-# Quit Pygame
-pygame.quit()
-sys.exit()
+initialize_game()
