@@ -16,19 +16,17 @@ WIDTH, HEIGHT = 1250,1250
 # size of the game tiles (entities)
 tile_size = 50
 #load assets (pictures & other)
-
 # Directory for images where the game images are stored
 image_dir = "images"
-
 # Load images
 path_image = pygame.image.load(os.path.join(image_dir, 'path_image.png'))
-wall_image = pygame.image.load(os.path.join(image_dir, 'wall_image.png'))
+wall_image = pygame.image.load(os.path.join(image_dir, 'grass2.png'))
 goal_image = pygame.image.load(os.path.join(image_dir, 'goal.png'))
-border_image = pygame.image.load(os.path.join(image_dir, 'brick_border.png'))
+border_image = pygame.image.load(os.path.join(image_dir, 'locust_tree.png'))
 player_image = pygame.image.load(os.path.join(image_dir, 'cat.png'))  # Load player image
 npc_image = pygame.image.load(os.path.join(image_dir, 'wolf.png'))  # Load NPC image
 item_image = pygame.image.load(os.path.join(image_dir, 'goal.png'))  # Load item image
-
+background_image = pygame.image.load(os.path.join(image_dir, 'background_image_light.png'))  # Load background image
 # resize the images in-program (too lazy to edit source image)
 path_image = pygame.transform.scale(path_image, (50, 50))
 wall_image = pygame.transform.scale(wall_image, (50, 50))
@@ -37,6 +35,7 @@ border_image = pygame.transform.scale(border_image, (50, 50))
 player_image = pygame.transform.scale(player_image, (50, 50))
 npc_image = pygame.transform.scale(npc_image, (50, 50))
 item_image = pygame.transform.scale(item_image, (50, 50))
+background_image = pygame.transform.scale(background_image, (WIDTH, HEIGHT))
 
 # Set up clock for FPS control
 clock = pygame.time.Clock()
@@ -76,19 +75,19 @@ maze = [#MAZE WALL OF ANNOYING
 ]
 
 #DEFAULT Entity spawn locations#
-player_pos = [12,11]
+player_pos = [2,2]
 npc_positions = [
-    [2, 2],  # NPC 1
-    [2, 2],  # NPC 2
-    [2, 2],  # NPC 3
-    [2, 2],  # NPC 4
-    [2, 2],  # NPC 5
-    [2, 2],  # NPC 6
-    [2, 2],  # NPC 7
+    [1, 1],  # NPC 1
+    [12, 12],  # NPC 2
+    [7, 7],  # NPC 3
+    [12, 12],  # NPC 4
+    [3, 17],  # NPC 5
+    [12, 12],  # NPC 6
+    [22, 22],  # NPC 7
 ]
 game_win = False
 game_over = False
-item_pos = [2,2]
+item_pos = [2,3]
         #allows the player to move X entity in this case the player one) i think?
 
 
@@ -208,7 +207,7 @@ def display_game_win():
     font = pygame.font.Font(None, 74)
     global player_image
     player_image = pygame.transform.scale(player_image, (WIDTH, HEIGHT))
-    text = font.render("You caught the buny!! Press any key to restart!", True, (0, 255, 0))  # Green color text
+    text = font.render("You caught the bunny!! Press any key to restart!", True, (0, 255, 0))  # Green color text
     text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
     screen.blit(player_image, (0, 0))
     screen.blit(text, text_rect)
@@ -305,10 +304,10 @@ while running:
     check_item_pickup_NPC()
     check_item_pickup()
 
-    # Fill the screen with a background color
-    screen.fill((0, 0, 0))
+
 
     # Draw the maze and entities
+    screen.blit(background_image, (0, 0))
     draw_maze()
     draw_npc()  # Draw all NPCs
     draw_player()
@@ -318,7 +317,7 @@ while running:
     pygame.display.flip()
 
     # Cap the frame rate
-    clock.tick(60)
+    clock.tick(10)
 
 # Quit Pygame
 pygame.quit()
