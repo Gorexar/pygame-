@@ -180,7 +180,7 @@ def check_item_pickup():
 
     if player_pos == item_pos:
         
-        if random.randint(1, 1) == 1: #10% of the time you win and game
+        if random.randint(1, 10) == 1: #10% of the time you win and game
             game_win = True
 
         else:
@@ -258,7 +258,7 @@ def check_item_pickup_NPC():
 
     for npc_pos in npc_positions:
         if npc_pos == item_pos:
-            if random.randint(1, 1) == 1:  # 10% chance to win
+            if random.randint(1, 10) == 1:  # 10% chance to win
                 print("The monster got the bunny!")
                 game_over = True
                 break  # Trigger game over
