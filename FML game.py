@@ -2,7 +2,7 @@
 ## DICTIONARY TIME APPARENTLY WOO! OTHERWISE THE GAME LOOPS AND LOOPS AND LOOPS!
 ## will be required for any kind of not insanity game-menu or defult settings of any kind without
 ## an insane amount of repeated code time to remap {} must get IN statements IN the brain.
-## DICTONARY;  NOPE CLASS TIME 
+## DICTONARY;  NOPE CLASS TIME need to refactor the game init__(self): and clases
 
 
 
@@ -19,7 +19,21 @@ import random
 #         self.images = self.initialize_images()
 #         self.clock = pygame.time.Clock()
 #         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
-#         pygame.display.set_caption("Maze Game for Anastazja!")
+#         self.pygame.display.set_caption("Maze Game for Anastazja!") 
+#         self.resize_images(images, tile_size, WIDTH, HEIGHT)
+    #     self.player_pos = [2,2]
+    #     self.item_pos = [2,3]
+    #     self.game_win = False
+    #     self.game_over = False
+    #     self.npc_positions = [
+    #     [1, 1],  # NPC 1
+    #     [12, 12],  # NPC 2
+    #     [7, 7],  # NPC 3
+    #     [12, 12],  # NPC 4
+    #     [3, 17],  # NPC 5
+    #     [12, 12],  # NPC 6
+    #     [22, 22],  # NPC 7
+    #   ]
 
 pygame.init()
 
