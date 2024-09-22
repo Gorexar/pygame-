@@ -6,6 +6,9 @@
 ## Inheritance....... must be nice to get one!.... instead i must use it to code apparently..........
 
 
+## Self is a dumb lable. it should be isolate or this? or this only. saying something is itself is redundant.
+#refrencing something refered to : it's self, as it's self. is weird.
+
 
 
 import pygame
@@ -18,22 +21,43 @@ import json
     #class Game_Defaults:
 
 class Game_Defaults:
-     def __init__(self):  
-          
-         self.WIDTH, self.HEIGHT = 1250, 1250
-         self.tile_size = 50
-         self.image_dir = "images"
-         self.images = self.initialize_images()
-         self.resize_images(self.images, self.tile_size, self.WIDTH, self.HEIGHT)
-         self.clock = pygame.time.Clock()
-         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
-         pygame.display.set_caption("Maze Game for Anastazja!") 
-         self.icon = self.images["player"]
-         self.player_pos = [2,2]
-         self.item_pos = [2,3]
-         self.game_win = False
-         self.game_over = False
-         self.npc_positions = [
+     DEFAULT_SETTINGS = {
+        "tile_size": 50,
+        "WIDTH": 1250,
+        "HEIGHT": 1250,
+        "player_pos": [2, 2],
+        "item_pos": [2, 3],
+        "game_win": False,
+        "game_over": False,
+        "npc_positions": [
+            [1, 1],  # NPC 1
+            [12, 12],  # NPC 2
+            [7, 7],  # NPC 3
+            [12, 12],  # NPC 4
+            [3, 17],  # NPC 5
+            [12, 12],  # NPC 6
+            [22, 22],  # NPC 7
+        ],
+    }
+     
+     def __init__(self):
+        self.initialize_game()
+
+     def initialize_game(self):  # set the game to its default settings
+            self.WIDTH, self.HEIGHT = 1250, 1250
+            self.tile_size = 50
+            self.image_dir = "images"
+            self.images = self.initialize_images()
+            self.resize_images(self.images, self.tile_size, self.WIDTH, self.HEIGHT)
+            self.clock = pygame.time.Clock()
+            self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+            pygame.display.set_caption("Maze Game for Anastazja!") 
+            self.icon = self.images["player"]
+            self.player_pos = [2,2]
+            self.item_pos = [2,3]
+            self.game_win = False
+            self.game_over = False
+            self.npc_positions = [
          [1, 1],  # NPC 1
          [12, 12],  # NPC 2
          [7, 7],  # NPC 3
@@ -46,9 +70,9 @@ class Game_Defaults:
          ## had to read up on how to use OS to read files in the installed location, not my personal PC HD LOC
          #this looks for where the game (this file) is located. then looks for the mazes folder and loads the maze
          # this will allow me to add more mazes later and have them load in the game
-         game_loc_dir = os.path.dirname(__file__)
-         directory_path = os.path.join(game_loc_dir, "mazes")
-         self.mazes = self.load_mazes_from_directory(directory_path)
+            game_loc_dir = os.path.dirname(__file__)
+            directory_path = os.path.join(game_loc_dir, "mazes")
+            self.mazes = self.load_mazes_from_directory(directory_path)
 
      #this is taking the maze file ive created and loading it into the game as a maze its using a list of lists
      def load_mazes_from_directory(self, directory_path):
@@ -83,66 +107,98 @@ class Game_Defaults:
          images["npc"] = pygame.transform.scale(images["npc"], (tile_size, tile_size))
          images["item"] = pygame.transform.scale(images["item"], (tile_size, tile_size))
          images["background"] = pygame.transform.scale(images["background"], (width, height))
-#more game code not in a class for now
-# Set up the game
-pygame.init()
+     
+     def main(self):
+        self.initialize_game()
+        while True:
+         for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+                
+            elif event.type == pygame.KEYDOWN:
+                self.move_player(event.key)
 
+        
+        # Move NPCs
+            self.move_npc(self.npc_positions)
+        
+        # Check for item pickup
+            self.check_item_pickup_Player()
+            self.check_item_pickup_NPC()
+            
+            # Draw everything
+            self.screen.blit(self.images["background"], (0, 0))  # Use the background image from the dictionary
+            self.draw_player()
+            self.draw_npc()
+            self.draw_item()
+            
+            # Check for game over or win
+            if self.game_over:
+                self.display_game_over()
+                self.game_end()
+            elif self.game_win:
+                self.display_game_win()
+                self.game_end()
+            
+            pygame.display.flip()
+            self.clock.tick(3)  # Control the frame rate
 
-# Maze data (grid of 0s and 1s where 0 is path, 3 border, 2 etc HAS TO BE 25x25 PYTHON THINKS THINGS STARTING AT ZERO IS NORMAL
-maze = [#MAZE WALL OF ANNOYING
-  [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
-  [3, 1, 5, 1, 1, 1, 5, 1, 5, 1, 1, 1, 1, 5, 1, 1, 1, 1, 1, 5, 1, 1, 1, 5, 3],
-  [3, 1, 5, 1, 5, 1, 5, 1, 1, 1, 5, 5, 1, 1, 1, 5, 5, 5, 1, 5, 1, 5, 1, 1, 3],
-  [3, 1, 5, 1, 5, 1, 5, 1, 5, 5, 1, 1, 5, 5, 5, 1, 1, 5, 1, 5, 1, 5, 5, 1, 3],
-  [3, 1, 1, 1, 5, 1, 5, 1, 5, 1, 1, 1, 1, 1, 1, 1, 1, 5, 1, 5, 1, 5, 1, 1, 3],
-  [3, 5, 5, 5, 5, 1, 5, 1, 5, 1, 5, 5, 5, 5, 5, 5, 1, 5, 1, 1, 1, 5, 1, 5, 3],
-  [3, 1, 1, 1, 1, 1, 5, 1, 5, 1, 1, 1, 1, 1, 1, 5, 1, 5, 5, 5, 5, 5, 1, 1, 3],
-  [3, 1, 5, 5, 5, 5, 5, 1, 5, 5, 5, 5, 5, 5, 1, 5, 1, 1, 1, 1, 1, 1, 1, 1, 3],
-  [3, 1, 1, 1, 1, 1, 1, 1, 5, 1, 1, 1, 1, 1, 1, 5, 5, 5, 5, 5, 5, 5, 5, 5, 3],
-  [3, 5, 5, 5, 5, 5, 5, 5, 5, 1, 5, 1, 5, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3],
-  [3, 1, 5, 5, 1, 1, 1, 1, 1, 1, 1, 5, 1, 1, 1, 1, 5, 5, 5, 5, 5, 5, 5, 1, 3],
-  [3, 1, 1, 1, 1, 1, 5, 5, 5, 5, 5, 1, 1, 5, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 3],
-  [3, 1, 5, 5, 5, 5, 5, 1, 5, 1, 1, 1, 5, 1, 1, 1, 1, 5, 1, 1, 5, 5, 5, 5, 3],
-  [3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 5, 1, 1, 1, 5, 5, 1, 5, 1, 5, 1, 1, 1, 3],
-  [3, 5, 5, 5, 5, 5, 5, 5, 5, 5, 1, 1, 1, 5, 5, 1, 5, 1, 1, 5, 5, 1, 5, 1, 3],
-  [3, 1, 1, 1, 5, 1, 5, 5, 1, 1, 1, 5, 5, 1, 1, 1, 1, 1, 5, 1, 1, 1, 1, 1, 3],
-  [3, 1, 5, 1, 5, 1, 1, 1, 1, 5, 5, 1, 1, 1, 5, 5, 1, 1, 5, 1, 1, 1, 5, 1, 3],
-  [3, 1, 5, 1, 1, 5, 5, 1, 5, 1, 1, 1, 5, 5, 1, 1, 1, 5, 1, 1, 5, 5, 5, 1, 3],
-  [3, 1, 1, 5, 1, 1, 5, 1, 1, 1, 5, 5, 5, 1, 1, 5, 5, 1, 1, 5, 1, 5, 1, 1, 3],
-  [3, 5, 1, 1, 5, 1, 5, 5, 5, 5, 1, 1, 1, 1, 5, 5, 1, 1, 5, 1, 1, 1, 1, 5, 3],
-  [3, 1, 5, 1, 5, 1, 1, 1, 5, 1, 1, 1, 5, 5, 1, 1, 1, 5, 1, 1, 5, 5, 5, 1, 3],
-  [3, 1, 1, 1, 5, 5, 5, 1, 1, 1, 5, 5, 1, 1, 1, 1, 5, 5, 1, 5, 1, 1, 1, 1, 3],
-  [3, 1, 5, 5, 1, 1, 1, 5, 5, 5, 1, 1, 1, 5, 5, 5, 5, 1, 1, 5, 1, 5, 1, 5, 3],
-  [3, 1, 1, 1, 1, 5, 1, 1, 1, 1, 1, 5, 5, 1, 1, 1, 1, 1, 1, 1, 1, 5, 1, 1, 3],
-  [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
-  
-]
+class NPC:
+    def __init__(self, position):
+        self.position = position
 
+    def move(self, is_move_valid):
+        direction = random.choice([pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT])
+        row, col = self.position
 
+        if direction == pygame.K_UP:
+            new_row = row - 1
+            new_col = col
+        elif direction == pygame.K_DOWN:
+            new_row = row + 1
+            new_col = col
+        elif direction == pygame.K_LEFT:
+            new_row = row
+            new_col = col - 1
+        elif direction == pygame.K_RIGHT:
+            new_row = row
+            new_col = col + 1
+        else:
+            return  # Skip invalid moves
 
-def initialize_game():
-    global player_pos, item_pos, game_win, game_over, npc_positions, images, tile_size, WIDTH, HEIGHT
-    images = initialize_images()  # Reset the images dictionary to its original values
-    tile_size = 50
-    WIDTH, HEIGHT = 1250, 1250  # Example dimensions
-    resize_images(images, tile_size, WIDTH, HEIGHT)
-    player_pos = [2,2]
-    item_pos = [2,3]
-    game_win = False
-    game_over = False
-    npc_positions = [
-    [1, 1],  # NPC 1
-    [12, 12],  # NPC 2
-    [7, 7],  # NPC 3
-    [12, 12],  # NPC 4
-    [3, 17],  # NPC 5
-    [12, 12],  # NPC 6
-    [22, 22],  # NPC 7
-]
- #random for later   #item_pos = [random.randint(1, 24), random.randint(1, 24)]  # Example item position
+        if is_move_valid(new_row, new_col):
+            self.position[0] = new_row
+            self.position[1] = new_col
+
+class Player:
+    def __init__(self, position): #what is self......
+        self.position = position
+        #where is self....
+    def get_position(self):
+        return self.position
+        #you know where self is, but lets get it again
+    def set_position(self, position):
+        self.position = position
+        #now that self is self, and self knows where self is. let see if self can move self.
+    def move(self, direction):
+        row, col = self.position
+        if direction == pygame.K_LEFT:
+            self.position = [row, col - 1]
+        elif direction == pygame.K_RIGHT:
+            self.position = [row, col + 1]
+        elif direction == pygame.K_UP:
+            self.position = [row - 1, col]
+        elif direction == pygame.K_DOWN:
+            self.position = [row + 1, col]
+class Item:
 
     
-     
+    
+
+# more game code not in a class for now
+# Set up the game
+pygame.init()
 
 def is_move_valid(new_row, new_col):
     num_rows = 25
@@ -191,31 +247,7 @@ def move_npc(npc_positions):
 
         new_col = col + 1
 
-def move_player(direction):
-    # Get current position
-    row, col = player_pos
-    
-    # Calculate new position based on direction
-    if direction == pygame.K_UP:
-        new_row = row - 1
-        new_col = col
-    elif direction == pygame.K_DOWN:
-        new_row = row + 1
-        new_col = col
-    elif direction == pygame.K_LEFT:
-        new_row = row
-        new_col = col - 1
-    elif direction == pygame.K_RIGHT:
-        new_row = row
-        new_col = col + 1
-    else:
-        return
 
-    # Check if the move is valid
-    if is_move_valid(new_row, new_col):
-        # Update player position if the move is valid
-        player_pos[0] = new_row
-        player_pos[1] = new_col
 def game_end():
     pygame.display.flip()
     waiting_for_keypress = True
@@ -320,46 +352,4 @@ def draw_maze():
             elif maze[row][col] == 2:
                 screen.blit(images["goal"], (x, y))
 
-
-def main():
-    initialize_game()
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-                
-            elif event.type == pygame.KEYDOWN:
-                move_player(event.key)
-
-        
-        # Move NPCs
-        move_npc(npc_positions)
-        
-        # Check for item pickup
-        check_item_pickup_Player()
-        check_item_pickup_NPC()
-        
-        # Draw everything
-        screen.blit(images["background"], (0, 0))  # Use the background image from the dictionary
-        draw_maze()
-        draw_player()
-        draw_npc()
-        draw_item()
-        
-        # Check for game over or win
-        if game_over:
-            display_game_over()
-            game_end()
-        elif game_win:
-            display_game_win()
-            game_end()
-        
-        pygame.display.flip()
-        clock.tick(3)  # Control the frame rate
-
-# Main game loop
-if __name__ == "__main__":
-    main()
-    
 
