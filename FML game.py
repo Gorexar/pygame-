@@ -191,77 +191,58 @@ class Player:
             self.position = [row - 1, col]
         elif direction == pygame.K_DOWN:
             self.position = [row + 1, col]
+# for making an item i need to define what paramters im using for the item in the self (self): part
+
+# if not careful i could spider web out classes and types and function hierarchies ad nauseum
 class Item:
+    def __init__(self, item_type, item_name, item_position): #item_value#
+        self.item_type = item_type
+        self.item_name = item_name
+        self.item_position = item_position
+        #self.item_value = item_value
+        #item is an item, and it has a type, a name, and a position. 
+            
+#
+#
+#class rules:
+   # def is_move_valid(new_row, new_col):
+    #    num_rows = 25
+    #    num_cols = 25
+    #    valid = True
 
-    
-    
-
-# more game code not in a class for now
-# Set up the game
-pygame.init()
-
-def is_move_valid(new_row, new_col):
-    num_rows = 25
-    num_cols = 25
-    valid = True
-
-    # Check if the new row is outside play space
-    if new_row < 0 or new_row >= num_rows:
-        valid = False
-
-    # Check if the new column out of play space
-    if new_col < 0 or new_col >= num_cols:
-        valid = False
-
-    # Check if the new position is a wall
-    if valid:  # Only check for walls if bounds are okay
-        if maze[new_row][new_col] == 3 or maze[new_row][new_col] == 5:
+        # Check if the new row is outside play space
+        if new_row < 0 or new_row >= num_rows:
             valid = False
 
-    # Return the validity status
-    return valid
+        # Check if the new column out of play space
+        if new_col < 0 or new_col >= num_cols:
+            valid = False
 
-def move_npc(npc_positions):
-    for npc_pos in npc_positions:
-        direction = random.choice([pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT])
-        row, col = npc_pos
+        # Check if the new position is a wall
+        if valid:  # Only check for walls if bounds are okay
+            if maze[new_row][new_col] == 3 or maze[new_row][new_col] == 5:
+                valid = False
 
-        if direction == pygame.K_UP:
-            new_row = row - 1
-            new_col = col
-        elif direction == pygame.K_DOWN:
-            new_row = row + 1
-            new_col = col
-        elif direction == pygame.K_LEFT:
-            new_row = row
-            new_col = col - 1
-        elif direction == pygame.K_RIGHT:
-            new_row = row
-            new_col = col + 1
-        else:
-            continue  # Skip invalid moves
-
-        if is_move_valid(new_row, new_col):
-            npc_pos[0] = new_row
-            npc_pos[1] = new_col
-
-        new_col = col + 1
-
-
-def game_end():
-    pygame.display.flip()
-    waiting_for_keypress = True
-    while waiting_for_keypress:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            elif event.type == pygame.KEYDOWN:
-                waiting_for_keypress = False
-                
-                #if the bunny is touched
-def check_item_pickup_Player():
+        # Return the validity status
+        return valid
+#class Conditions:
+    def game_end():
+        pygame.display.flip()
+        waiting_for_keypress = True
+        while waiting_for_keypress:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.KEYDOWN:
+                    waiting_for_keypress = False
+                    break
+def player_pickpup_item():
+    item
  
+
+
+
     global item_pos, game_win
     if player_pos == item_pos:
 
