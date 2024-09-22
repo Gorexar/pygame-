@@ -33,6 +33,10 @@ class Game_Defaults:
      
      def __init__(self):
         self.initialize_game()
+     
+     def draw_item(self):
+        if self.item.position is not None:
+            self.screen.blit(self.images["item"], (self.item.position[1] * self.tile_size, self.item.position[0] * self.tile_size))
 
      def initialize_game(self):  # set the game to its default settings
             self.WIDTH, self.HEIGHT = 1250, 1250
@@ -50,13 +54,14 @@ class Game_Defaults:
             self.game_over = False
             self.npcs = [NPC(position=pos) for pos in self.npc_positions[0]]
             self.player = Player(position=self.player_positions[0])
+            self.player = Player(position=self.player_positions[0], inventory_size=5) #inventory default size
 
             game_loc_dir = os.path.dirname(__file__)
             directory_path = os.path.join(game_loc_dir, "mazes")
             self.mazes, self.player_positions, self.item_positions, self.npc_positions = self.load_mazes_from_directory(directory_path)
            # self.item = Item(position=self.item_positions[0])
            # self.item_attributes = ItemAttributes(
-            #    item=self.item,
+           #    item=self.item,
            #     item_type="Consumable",
            #     item_name="Health Potion",
            #     item_value=50,
@@ -171,11 +176,11 @@ class Game_Defaults:
             
             pygame.display.flip()
             self.clock.tick(3)  # Control the frame rate
-
+#what is an npc
 class NPC:
     def __init__(self, position):
         self.position = position
-
+#how does an npc move
     def move(self, is_move_valid):
         direction = random.choice([pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT])
         row, col = self.position
@@ -198,17 +203,13 @@ class NPC:
         if is_move_valid(new_row, new_col):
             self.position[0] = new_row
             self.position[1] = new_col
-
+#what is a player
 class Player:
-    def __init__(self, position): #what is self......
+    def __init__(self, position, inventory_size=5):
         self.position = position
-        #where is self....
-    def get_position(self):
-        return self.position
-        #you know where self is, but lets get it again
-    def set_position(self, position):
-        self.position = position
-        #now that self is self, and self knows where self is. let see if self can move self.
+        self.inventory = []
+        self.inventory_size = inventory_size
+
     def move(self, direction):
         row, col = self.position
         if direction == pygame.K_LEFT:
@@ -219,9 +220,41 @@ class Player:
             self.position = [row - 1, col]
         elif direction == pygame.K_DOWN:
             self.position = [row + 1, col]
+
+    def add_to_inventory(self, item):
+        if len(self.inventory) < self.inventory_size:
+            self.inventory.append(item)
+            return True
+        else:
+            return False
+
+    def is_inventory_full(self):
+        return len(self.inventory) >= self.inventory_size
+        #now that self is self, and self knows where self is. let see if self can move self.
+    #how does a palyer move
+    def move(self, direction):
+        row, col = self.position
+        if direction == pygame.K_LEFT:
+            self.position = [row, col - 1]
+        elif direction == pygame.K_RIGHT:
+            self.position = [row, col + 1]
+        elif direction == pygame.K_UP:
+            self.position = [row - 1, col]
+        elif direction == pygame.K_DOWN:
+            self.position = [row + 1, col]
+
+    def add_to_inventory(self, item):
+        if len(self.inventory) < self.inventory_size:
+            self.inventory.append(item)
+            return True
+        else:
+            return False
+
+    def is_inventory_full(self):
+        return len(self.inventory) >= self.inventory_size        
 # for making an item i need to define what paramters(values)atributes w/e im using for the item in the self (self): part
 # had to go deeper and deaper into what is a thing.
-class Item:
+class item:
     def __init__(self, position):
         self.position = position
 
@@ -230,8 +263,8 @@ class Item:
 
     def set_position(self, position):
         self.position = position
-
-class item_Attributes:
+#atributes of the item
+class item_attributes(item):
     def __init__(self, item, item_type, item_name, item_value, item_weight):
         self.item = item  # Reference to an Item instance
         self.item_type = item_type  # Will categorize the item
@@ -244,21 +277,8 @@ class item_Attributes:
 
     def get_item_position(self):
         return self.item.get_position()
-        
-
-
-
-
-#class item_types(item):
-   # def __init__(self,ConsumableItem, Game_win_lose_items):
-       # self.ConsumableItem = ConsumableItem
-        #self.Game_win_lose_items = Game_win_lose_items
-
-
-
-#setting this up the most fk'd up way possible, but i need to learn how to use classes and inheritance
-# if i do it now i wont have to re-write it later. i think. #polymorphism sure why not...
-class ConsumableItem(Item):
+#atributes of the consumable itesm defined
+class ConsumableItem(item_attributes):
     def __init__(self, name, description, weight, item_type, value=None):
         super().__init__(name, description, weight, item_type)
         self.value = value  #value is the amount the item heals or buffs the player
@@ -297,49 +317,24 @@ Consumeable_items = {
         value=20
     ),
 }
-#class Game_win_lose_items(item):
+#class objects: #(the bunny)
+class Actions:
+    def __init__(self, player, item):
+        self.player = player
+        self.item = item
 
-
-
-        #self.item_value = item_value
-        #item is an item, and it has a type, a name, and a position. 
-    #def use/consume item (will need for HUD and inventory) god help me)
-    #def interact with item
-    #def  
-    #  creates a sub class that pulls veriables from the item class
-
-#
-    def use(self):
-        # Define what happens when the item is used
-        if self.value:
-            print(f"{self.name} used! It heals {self.value} HP.")
-        else:
-            print(f"{self.name} used! {self.description}")
-
-    def __str__(self):
-        return f"ConsumableItem(name={self.name}, type={self.item_type}, description={self.description}, weight={self.weight}, value={self.value})"    
-
-# only one game win/lose condition atm
-Game_win_lose_items = {
-    "bunny": {
-        "name": "bunny",
-        "description": "A cute bunny that you need to catch to win the game.",
-        "type": "objective"
-    }
-}
-    
-
-
-
-#
-
-
-#
-#class rules:
-   # def is_move_valid(new_row, new_col):
-    #    num_rows = 25
-    #    num_cols = 25
-    #    valid = True
+    def player_pickup_item(self):
+        if self.player.position == self.item.position:
+            if not self.player.is_inventory_full():
+                self.player.add_to_inventory(self.item)  # Add item to player's inventory
+                self.item.position = None  # Remove item from the game
+                print("You picked up the item!")
+        else:print("inventory full")
+    #is move valid
+    def is_move_valid(new_row, new_col):
+        num_rows = 25
+        num_cols = 25
+        valid = True
 
         # Check if the new row is outside play space
         if new_row < 0 or new_row >= num_rows:
@@ -356,85 +351,60 @@ Game_win_lose_items = {
 
         # Return the validity status
         return valid
-#class Conditions:
-    def game_end():
-        pygame.display.flip()
-        waiting_for_keypress = True
-        while waiting_for_keypress:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                elif event.type == pygame.KEYDOWN:
-                    waiting_for_keypress = False
-                    break
-def player_pickpup_item():
-    item
- 
 
+    # def game_end():
+    #     pygame.display.flip()
+    #     waiting_for_keypress = True
+    #     while waiting_for_keypress:
+    #         for event in pygame.event.get():
+    #             if event.type == pygame.QUIT:
+    #                 pygame.quit()
+    #                 sys.exit()
+    #             elif event.type == pygame.KEYDOWN:
+    #                 waiting_for_keypress = False
+    #                 break
 
+# def check_item_pickup_NPC():
+#     global item_pos, game_over
 
-    global item_pos, game_win
-    if player_pos == item_pos:
+#     for npc_pos in npc_positions:
+#         if npc_pos == item_pos:
+#             if random.randint(1, 10) == 1:  # 10% chance to win
+#                 print("The monster got the bunny!")
+#                 game_over = True
+#                 break  # Trigger game over
+#             else:  # 90% chance to teleport the item
+#                 while True:
+#                     new_row = random.randint(0, 24)
+#                     new_col = random.randint(0, 24)
+#                     if is_move_valid(new_row, new_col):
+#                         item_pos[0] = new_row
+#                         item_pos[1] = new_col
+#                         print("The bunny escaped a monster!")
+#                         break
 
-        if random.randint(1, 1) == 1: #10% of the time you win and game
-            game_win = True
-        else:
-            while True: #90% of the time it teleports
-                new_row = random.randint(1, 23)
-                new_col = random.randint(1, 23)
-                if is_move_valid(new_row, new_col):
-                    item_pos[0] = new_row
-                    item_pos[1] = new_col
-                    print("The bunny escaped through a hole!")
-                    break
+# def display_game_over():
+#     font = pygame.font.Font(None, 74)
+#     global images
+#     images["npc"] = pygame.transform.scale(images["npc"], (WIDTH, HEIGHT))
+#     text = font.render("The wolves ate the bunny! Press any key to restart!", True, (255, 0, 0))  # Red color text
+#     text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+#     screen.blit(images["npc"], (0, 0))
+#     screen.blit(text, text_rect)
+#     pygame.display.flip()
+# waiting_for_keypress = True
 
-def check_item_pickup_NPC():
-    global item_pos, game_over
+# def display_game_win():
+#     font = pygame.font.Font(None, 74)
+#     global images
+#     images["npc"] = pygame.transform.scale(images["npc"], (WIDTH, HEIGHT))
+#     text = font.render("You caught the bunny!! Press any key to restart!", True, (0, 255, 0))  # Green color text
+#     text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+#     screen.blit(images["player"], (0, 0))
+#     screen.blit(text, text_rect)
+# waiting_for_keypress = True
 
-    for npc_pos in npc_positions:
-        if npc_pos == item_pos:
-            if random.randint(1, 10) == 1:  # 10% chance to win
-                print("The monster got the bunny!")
-                game_over = True
-                break  # Trigger game over
-            else:  # 90% chance to teleport the item
-                while True:
-                    new_row = random.randint(0, 24)
-                    new_col = random.randint(0, 24)
-                    if is_move_valid(new_row, new_col):
-                        item_pos[0] = new_row
-                        item_pos[1] = new_col
-                        print("The bunny escaped a monster!")
-                        break
-
-def display_game_over():
-    font = pygame.font.Font(None, 74)
-    global images
-    images["npc"] = pygame.transform.scale(images["npc"], (WIDTH, HEIGHT))
-    text = font.render("The wolves ate the bunny! Press any key to restart!", True, (255, 0, 0))  # Red color text
-    text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
-    screen.blit(images["npc"], (0, 0))
-    screen.blit(text, text_rect)
-    pygame.display.flip()
-waiting_for_keypress = True
-
-
-
-
-def display_game_win():
-    font = pygame.font.Font(None, 74)
-    global images
-    images["npc"] = pygame.transform.scale(images["npc"], (WIDTH, HEIGHT))
-    text = font.render("You caught the bunny!! Press any key to restart!", True, (0, 255, 0))  # Green color text
-    text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
-    screen.blit(images["player"], (0, 0))
-    screen.blit(text, text_rect)
-waiting_for_keypress = True
-
-
- #*****DRAWING THE GAME******
-
+#  #*****DRAWING THE GAME******
 
 def draw_player():
     screen.blit(images["player"], (player_pos[1] * tile_size, player_pos[0] * tile_size))
