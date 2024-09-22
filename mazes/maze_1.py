@@ -29,4 +29,15 @@ maze = [#MAZE WALL OF ANNOYING
 ]
 NPC_POSITIONS = [(1, 1), (23, 23), (23, 1), (1, 23)]
 PLAYER_POSITIONS = (1, 1)
-ITEM_POSITIONS = [(23, 23), (23, 1), (1, 23)]
+ITEM_POSITIONS = [
+{'name': 'food', 'position': [3, 7]},
+{'name': 'tiny scratching post', 'position': [1, 4]},
+{'name': 'water bowl', 'position': [8, 2]},
+{'name': 'catnip toy', 'position': [5, 9]},
+{'name': 'treats', 'position': [0, 6]},
+{'name': 'feather wand', 'position': [7, 3]},
+{'name': 'laser pointer', 'position': [2, 8]},
+{'name': 'cat bed', 'position': [4, 1]},
+{'name': 'litter box', 'position': [9, 0]},
+{'name': 'scratching pad', 'position': [6, 5]}
+]

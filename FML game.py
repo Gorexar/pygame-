@@ -15,28 +15,17 @@ import pygame
 import sys
 import os
 import random
+import json
 
  #class to run the game defaults and game loop i think
     #class Game_Defaults:
 
-class Game_Defaults:
-     DEFAULT_SETTINGS = {
-        "tile_size": 50,
-        "WIDTH": 1250,
-        "HEIGHT": 1250,
-        "player_pos": [2, 2],
-        "item_pos": [2, 3],
-        "game_win": False,
-        "game_over": False,
-        "npc_positions": []
-    }
+class Game:
+     
      
      def __init__(self):
         self.initialize_game()
-     
-     def draw_item(self):
-        if self.item.position is not None:
-            self.screen.blit(self.images["item"], (self.item.position[1] * self.tile_size, self.item.position[0] * self.tile_size))
+        self.state = "PLAYING"  # Game starts in playing state
 
      def initialize_game(self):  # set the game to its default settings
             self.WIDTH, self.HEIGHT = 1250, 1250
@@ -48,32 +37,19 @@ class Game_Defaults:
             self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
             pygame.display.set_caption("Maze Game for Anastazja!") 
             self.icon = self.images["player"]
-            self.player = Player(position=self.player_positions[0])
-            self.item = Item(position=self.item_positions[0])
-            self.game_win = False
             self.game_over = False
+            self.game_win = False
+            self.state = "PLAYING"
             self.npcs = [NPC(position=pos) for pos in self.npc_positions[0]]
             self.player = Player(position=self.player_positions[0])
+            self.item = item(position=self.item_positions[0])
+            self.player = Player(position=self.player_positions[0])
             self.player = Player(position=self.player_positions[0], inventory_size=5) #inventory default size
-
             game_loc_dir = os.path.dirname(__file__)
             directory_path = os.path.join(game_loc_dir, "mazes")
             self.mazes, self.player_positions, self.item_positions, self.npc_positions = self.load_mazes_from_directory(directory_path)
-           # self.item = Item(position=self.item_positions[0])
-           # self.item_attributes = ItemAttributes(
-           #    item=self.item,
-           #     item_type="Consumable",
-           #     item_name="Health Potion",
-           #     item_value=50,
-           #     item_weight=1
-        
-         
-         ## had to read up on how to use OS to read files in the installed location, not my personal PC HD LOC
-         #this looks for where the game (this file) is located. then looks for the mazes folder and loads the maze
-         # this will allow me to add more mazes later and have them load in the game
-        
+      
 
-     #this is taking the maze file ive created and loading it into the game as a maze its using a list of lists also trying to add in dfault npc postions from map to map
      def load_mazes_from_directory(self, directory_path):
         mazes = []
         player_positions = []
@@ -141,42 +117,113 @@ class Game_Defaults:
          images["item"] = pygame.transform.scale(images["item"], (tile_size, tile_size))
          images["background"] = pygame.transform.scale(images["background"], (width, height))
      
-     def main(self):
-        self.initialize_game()
-        while True:
-         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-                
-            elif event.type == pygame.KEYDOWN:
-                self.move_player(event.key)
+class Game:
+    def __init__(self, maze_file):
+        pygame.init()
 
-        
-        # Move NPCs
-            self.move_npc(self.npc_positions)
-        
-        # Check for item pickup
-            self.check_item_pickup_Player()
-            self.check_item_pickup_NPC()
-            
-            # Draw everything
-            self.screen.blit(self.images["background"], (0, 0))  # Use the background image from the dictionary
+        # Setup display, clock, etc.
+        self.tile_size = 50
+        self.screen_width = 1250
+        self.screen_height = 1250
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        self.clock = pygame.time.Clock()
+
+        # Load maze, player, NPCs, and items
+        self.maze = Maze.load_from_file(maze_file)
+        self.player = Player(position=self.maze.player_position)
+        self.npcs = [NPC(position=pos) for pos in self.maze.npc_positions]
+        self.items_in_game = self.maze.generate_items(Consumable_items)
+
+        # Load assets
+        self.load_assets()
+
+    def load_assets(self):
+        # Loading images and other assets
+        self.images = {
+            "background": pygame.image.load("background.png"),
+            "item": pygame.image.load("item.png"),
+            "player": pygame.image.load("player.png"),
+        }
+
+    def main_loop(self):
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+            # Game logic and rendering
+            self.screen.blit(self.images["background"], (0, 0))
             self.draw_player()
-            self.draw_npc()
-            self.draw_item()
-            
-            # Check for game over or win
-            if self.game_over:
-                self.display_game_over()
-                self.game_end()
-            elif self.game_win:
-                self.display_game_win()
-                self.game_end()
-            
+            self.draw_npcs()
+            self.draw_items()
+
             pygame.display.flip()
-            self.clock.tick(3)  # Control the frame rate
+            self.clock.tick(30)
+
 #what is an npc
+class game_State:
+    
+    def display_game_over(self):
+        font = pygame.font.Font(None, 74)
+        text = font.render("Game Over! Press any key to restart.", True, (255, 0, 0))  # Red text
+        text_rect = text.get_rect(center=(self.WIDTH // 2, self.HEIGHT // 2))
+        self.screen.blit(self.images["background"], (0, 0))
+        self.screen.blit(text, text_rect)
+        pygame.display.flip()
+
+    def display_game_win(self):
+        font = pygame.font.Font(None, 74)
+        text = font.render("You Win! Press any key to restart.", True, (0, 255, 0))  # Green text
+        text_rect = text.get_rect(center=(self.WIDTH // 2, self.HEIGHT // 2))
+        self.screen.blit(self.images["background"], (0, 0))
+        self.screen.blit(text, text_rect)
+        pygame.display.flip()
+
+    def restart_game(self):
+        # Reset game state here
+        self.initialize_game()  # You may need to refine this to reset all positions, etc.
+        self.state = "PLAYING"
+class Maze:
+    def __init__(self, layout, player_position, npc_positions, item_positions):
+        self.layout = layout
+        self.player_position = player_position
+        self.npc_positions = npc_positions
+        self.item_positions = item_positions
+
+    @classmethod
+    def load_from_file(cls, file_path):
+        with open(file_path, 'r') as f:
+            maze_data = json.load(f)
+
+        layout = maze_data["layout"]
+        player_position = maze_data["player_position"]
+        npc_positions = maze_data["npc_positions"]
+        item_positions = maze_data["item_positions"]
+        return cls(layout, player_position, npc_positions, item_positions)
+
+    def get_valid_positions(self):
+        """Return a list of valid positions (not walls or obstacles)"""
+        valid_positions = []
+        for row in range(len(self.layout)):
+            for col in range(len(self.layout[row])):
+                if self.layout[row][col] == 0:  # Assuming 0 represents a walkable path
+                    valid_positions.append([row, col])
+        return valid_positions
+
+    def generate_items(self, items):
+        """Place items in predefined or random valid locations"""
+        valid_positions = self.get_valid_positions()
+        for item_data in items:
+            if "position" not in item_data:
+                # Randomize item placement if no predefined position
+                random_pos = random.choice(valid_positions)
+                valid_positions.remove(random_pos)
+                item_data["position"] = random_pos
+        return items
+
+
+#is running
 class NPC:
     def __init__(self, position):
         self.position = position
@@ -363,75 +410,7 @@ class Actions:
     #             elif event.type == pygame.KEYDOWN:
     #                 waiting_for_keypress = False
     #                 break
-
+# this check will be when object is made as npc's wont interract with items
 # def check_item_pickup_NPC():
-#     global item_pos, game_over
-
-#     for npc_pos in npc_positions:
-#         if npc_pos == item_pos:
-#             if random.randint(1, 10) == 1:  # 10% chance to win
-#                 print("The monster got the bunny!")
-#                 game_over = True
-#                 break  # Trigger game over
-#             else:  # 90% chance to teleport the item
-#                 while True:
-#                     new_row = random.randint(0, 24)
-#                     new_col = random.randint(0, 24)
-#                     if is_move_valid(new_row, new_col):
-#                         item_pos[0] = new_row
-#                         item_pos[1] = new_col
-#                         print("The bunny escaped a monster!")
-#                         break
-
-# def display_game_over():
-#     font = pygame.font.Font(None, 74)
-#     global images
-#     images["npc"] = pygame.transform.scale(images["npc"], (WIDTH, HEIGHT))
-#     text = font.render("The wolves ate the bunny! Press any key to restart!", True, (255, 0, 0))  # Red color text
-#     text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
-#     screen.blit(images["npc"], (0, 0))
-#     screen.blit(text, text_rect)
-#     pygame.display.flip()
-# waiting_for_keypress = True
-
-# def display_game_win():
-#     font = pygame.font.Font(None, 74)
-#     global images
-#     images["npc"] = pygame.transform.scale(images["npc"], (WIDTH, HEIGHT))
-#     text = font.render("You caught the bunny!! Press any key to restart!", True, (0, 255, 0))  # Green color text
-#     text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
-#     screen.blit(images["player"], (0, 0))
-#     screen.blit(text, text_rect)
-# waiting_for_keypress = True
-
-#  #*****DRAWING THE GAME******
-
-def draw_player():
-    screen.blit(images["player"], (player_pos[1] * tile_size, player_pos[0] * tile_size))
-    #npc
-def draw_npc():
-    for npc_pos in npc_positions:
-        screen.blit(images["npc"], (npc_pos[1] * tile_size, npc_pos[0] * tile_size))
-
-#item
-def draw_item():
-    screen.blit(images["item"], (item_pos[1] * tile_size, item_pos[0] * tile_size))
-
-
-
-#how do we create the maze reads the number of colums  the number of rows (#25) is used as a border with #00
-def draw_maze():
-    for row in range(len(maze)):
-        for col in range(len(maze[row])):
-            x = col * tile_size
-            y = row * tile_size
-            if maze[row][col] == 1:
-                screen.blit(images["path"], (x, y))
-            elif maze[row][col] == 5:
-                screen.blit(images["wall"], (x, y))
-            elif maze[row][col] == 3:
-                screen.blit(images["border"], (x, y))
-            elif maze[row][col] == 2:
-                screen.blit(images["goal"], (x, y))
 
 
