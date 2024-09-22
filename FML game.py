@@ -12,94 +12,81 @@ import pygame
 import sys
 import os
 import random
+import json
 
- 
-# class Game:
-#     def __init__(self):   
-#         self.WIDTH, self.HEIGHT = 1250, 1250
-#         self.tile_size = 50
-#         self.image_dir = "images"
-#         self.images = self.initialize_images()
-#         self.clock = pygame.time.Clock()
-#         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
-#         self.pygame.display.set_caption("Maze Game for Anastazja!") 
-#         self.resize_images(images, tile_size, WIDTH, HEIGHT)
-    #     self.player_pos = [2,2]
-    #     self.item_pos = [2,3]
-    #     self.game_win = False
-    #     self.game_over = False
-    #     self.npc_positions = [
-    #     [1, 1],  # NPC 1
-    #     [12, 12],  # NPC 2
-    #     [7, 7],  # NPC 3
-    #     [12, 12],  # NPC 4
-    #     [3, 17],  # NPC 5
-    #     [12, 12],  # NPC 6
-    #     [22, 22],  # NPC 7
-    #   ]
+ #class to run the game defaults and game loop i think
+    #class Game_Defaults:
 
+class Game_Defaults:
+     def __init__(self):  
+          
+         self.WIDTH, self.HEIGHT = 1250, 1250
+         self.tile_size = 50
+         self.image_dir = "images"
+         self.images = self.initialize_images()
+         self.resize_images(self.images, self.tile_size, self.WIDTH, self.HEIGHT)
+         self.clock = pygame.time.Clock()
+         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
+         pygame.display.set_caption("Maze Game for Anastazja!") 
+         self.icon = self.images["player"]
+         self.player_pos = [2,2]
+         self.item_pos = [2,3]
+         self.game_win = False
+         self.game_over = False
+         self.npc_positions = [
+         [1, 1],  # NPC 1
+         [12, 12],  # NPC 2
+         [7, 7],  # NPC 3
+         [12, 12],  # NPC 4
+         [3, 17],  # NPC 5
+         [12, 12],  # NPC 6
+         [22, 22],  # NPC 7
+       ]
+         
+         ## had to read up on how to use OS to read files in the installed location, not my personal PC HD LOC
+         #this looks for where the game (this file) is located. then looks for the mazes folder and loads the maze
+         # this will allow me to add more mazes later and have them load in the game
+         game_loc_dir = os.path.dirname(__file__)
+         directory_path = os.path.join(game_loc_dir, "mazes")
+         self.mazes = self.load_mazes_from_directory(directory_path)
+
+     #this is taking the maze file ive created and loading it into the game as a maze its using a list of lists
+     def load_mazes_from_directory(self, directory_path):
+            mazes = []
+            for file_name in os.listdir(directory_path):
+                with open(os.path.join(directory_path, file_name), "r") as file:
+                    maze = []
+                    for line in file:
+                        maze.append([int(char) for char in line.strip()])
+                    mazes.append(maze)
+            return mazes
+     
+     
+     def initialize_images(self):
+         return {
+             "path": pygame.image.load(os.path.join(self.image_dir, 'path_image.png')),
+             "wall": pygame.image.load(os.path.join(self.image_dir, 'grass2.png')),
+             "goal": pygame.image.load(os.path.join(self.image_dir, 'goal.png')),
+             "border": pygame.image.load(os.path.join(self.image_dir, 'locust_tree.png')),
+             "player": pygame.image.load(os.path.join(self.image_dir, 'cat.png')),
+             "npc": pygame.image.load(os.path.join(self.image_dir, 'wolf.png')),
+             "item": pygame.image.load(os.path.join(self.image_dir, 'goal.png')),
+             "background": pygame.image.load(os.path.join(self.image_dir, 'background_image_light.png'))
+         }
+
+     def resize_images(self, images, tile_size, width, height):
+         images["path"] = pygame.transform.scale(images["path"], (tile_size, tile_size))
+         images["wall"] = pygame.transform.scale(images["wall"], (tile_size, tile_size))
+         images["goal"] = pygame.transform.scale(images["goal"], (tile_size, tile_size))
+         images["border"] = pygame.transform.scale(images["border"], (tile_size, tile_size))
+         images["player"] = pygame.transform.scale(images["player"], (tile_size, tile_size))
+         images["npc"] = pygame.transform.scale(images["npc"], (tile_size, tile_size))
+         images["item"] = pygame.transform.scale(images["item"], (tile_size, tile_size))
+         images["background"] = pygame.transform.scale(images["background"], (width, height))
+#more game code not in a class for now
+# Set up the game
 pygame.init()
 
-# window size FIXED
-WIDTH, HEIGHT = 1250,1250
-# size of the game tiles (entities)
-tile_size = 50
-#load assets (pictures & other)
-# Directory for images where the game images are stored
-image_dir = "images"
-
-##disctonary for the images
-images = {
-"path": pygame.image.load(os.path.join(image_dir, 'path_image.png')),
-    "wall": pygame.image.load(os.path.join(image_dir, 'grass2.png')),
-    "goal": pygame.image.load(os.path.join(image_dir, 'goal.png')),
-    "border": pygame.image.load(os.path.join(image_dir, 'locust_tree.png')),
-    "player": pygame.image.load(os.path.join(image_dir, 'cat.png')),  # Load player image
-    "npc": pygame.image.load(os.path.join(image_dir, 'wolf.png')),  # Load NPC image
-    "item": pygame.image.load(os.path.join(image_dir, 'goal.png')),  # Load item image
-    "background": pygame.image.load(os.path.join(image_dir, 'background_image_light.png'))
-      
-  }  # Load background image
-
- ## resiez the pictures in the dictonary 
-images["path"] = pygame.transform.scale(images["path"], (tile_size, tile_size))
-images["wall"] = pygame.transform.scale(images["wall"], (tile_size, tile_size))
-images["goal"] = pygame.transform.scale(images["goal"], (tile_size, tile_size))
-images["border"] = pygame.transform.scale(images["border"], (tile_size, tile_size))
-images["player"] = pygame.transform.scale(images["player"], (tile_size, tile_size))
-images["npc"] = pygame.transform.scale(images["npc"], (tile_size, tile_size))
-images["item"] = pygame.transform.scale(images["item"], (tile_size, tile_size))
-images["background"] = pygame.transform.scale(images["background"], (WIDTH, HEIGHT))
-
-def initialize_images():
-    return {
-        "path": pygame.image.load(os.path.join(image_dir, 'path_image.png')),
-        "wall": pygame.image.load(os.path.join(image_dir, 'grass2.png')),
-        "goal": pygame.image.load(os.path.join(image_dir, 'goal.png')),
-        "border": pygame.image.load(os.path.join(image_dir, 'locust_tree.png')),
-        "player": pygame.image.load(os.path.join(image_dir, 'cat.png')),
-        "npc": pygame.image.load(os.path.join(image_dir, 'wolf.png')),
-        "item": pygame.image.load(os.path.join(image_dir, 'goal.png')),
-        "background": pygame.image.load(os.path.join(image_dir, 'background_image_light.png'))
-    }
-def resize_images(images, tile_size, width, height):
-    images["path"] = pygame.transform.scale(images["path"], (tile_size, tile_size))
-    images["wall"] = pygame.transform.scale(images["wall"], (tile_size, tile_size))
-    images["goal"] = pygame.transform.scale(images["goal"], (tile_size, tile_size))
-    images["border"] = pygame.transform.scale(images["border"], (tile_size, tile_size))
-    images["player"] = pygame.transform.scale(images["player"], (tile_size, tile_size))
-    images["npc"] = pygame.transform.scale(images["npc"], (tile_size, tile_size))
-    images["item"] = pygame.transform.scale(images["item"], (tile_size, tile_size))
-    images["background"] = pygame.transform.scale(images["background"], (width, height))
-
-# Set up clock for FPS control
-clock = pygame.time.Clock()
-
- # create the game 
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Maze Game for Anastazja!")
-icon = images["player"]  # Correct the key to access the player image
-pygame.display.set_icon(icon)  # Set the game icon
 
 # Maze data (grid of 0s and 1s where 0 is path, 3 border, 2 etc HAS TO BE 25x25 PYTHON THINKS THINGS STARTING AT ZERO IS NORMAL
 maze = [#MAZE WALL OF ANNOYING
