@@ -3,6 +3,8 @@
 ## will be required for any kind of not insanity game-menu or defult settings of any kind without
 ## an insane amount of repeated code time to remap {} must get IN statements IN the brain.
 ## DICTONARY;  NOPE CLASS TIME need to refactor the game init__(self): and clases
+## Inheritance....... must be nice to get one!.... instead i must use it to code apparently..........
+
 
 
 
@@ -11,6 +13,7 @@ import sys
 import os
 import random
 
+ 
 # class Game:
 #     def __init__(self):   
 #         self.WIDTH, self.HEIGHT = 1250, 1250
@@ -95,6 +98,8 @@ clock = pygame.time.Clock()
  # create the game 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Maze Game for Anastazja!")
+icon = images["player"]  # Correct the key to access the player image
+pygame.display.set_icon(icon)  # Set the game icon
 
 # Maze data (grid of 0s and 1s where 0 is path, 3 border, 2 etc HAS TO BE 25x25 PYTHON THINKS THINGS STARTING AT ZERO IS NORMAL
 maze = [#MAZE WALL OF ANNOYING
@@ -235,13 +240,7 @@ def game_end():
             elif event.type == pygame.KEYDOWN:
                 waiting_for_keypress = False
                 
-            
-                
-                
-            
-            
-
-#if the bunny is touched
+                #if the bunny is touched
 def check_item_pickup_Player():
  
     global item_pos, game_win
