@@ -1,16 +1,3 @@
-## still fix game over and win open/close game restart stuff
-## DICTIONARY TIME APPARENTLY WOO! OTHERWISE THE GAME LOOPS AND LOOPS AND LOOPS!
-## will be required for any kind of not insanity game-menu or defult settings of any kind without
-## an insane amount of repeated code time to remap {} must get IN statements IN the brain.
-## DICTONARY;  NOPE CLASS TIME need to refactor the game init__(self): and clases
-## Inheritance....... must be nice to get one!.... instead i must use it to code apparently..........
-
-
-## Self is a dumb lable. it should be isolate or this? or this only. saying something is itself is redundant.
-#refrencing something refered to : it's self, as it's self. is weird.
-
-
-
 import pygame
 import sys
 import os
@@ -19,8 +6,92 @@ import json
 
  #class to run the game defaults and game loop i think
     #class Game_Defaults:
+#atributes of the consumable itesm defined
+class Item:
+    def __init__(self, position):
+        self.position = position
 
+    def get_position(self):
+        return self.position
+
+    def set_position(self, position):
+        self.position = position
+class item_attributes(Item):
+    def __init__(self, item, item_type, item_name, item_value, item_size):
+        super().__init__(item.position)  # Ensure to call the parent constructor
+        self.item = item
+        self.item_type = item_type
+        self.item_name = item_name
+        self.item_value = item_value
+        self.item_size = item_size
+
+    def __str__(self):
+        return f"{self.item_name} is a {self.item_type} and weighs {self.item_size} and it's value is {self.item_value}"
+
+    def get_item_position(self):
+        return self.item.get_position()
+class ConsumableItem(item_attributes):
+    def __init__(self, name, description, item_size, item_type, value=None):
+        # Create an Item instance with a default position (e.g., None)
+        item = Item(position=None)
+        
+        # Pass all the required parameters to the superclass
+        super().__init__(item, item_type, name, value, item_size)
+        
+        self.value = value  # This is specific to ConsumableItem
+Consumeable_items = {
+    "food": ConsumableItem(
+        name="food",
+        description="Heals 10 HP",
+        item_size=1,
+        item_type="food",
+        value=10
+    ),
+    "tiny scratching post": ConsumableItem(
+        name="tiny scratching post",
+        description="Sharpens claws a small amount",
+        item_size=1,
+        item_type="object"
+    ),
+    "tasty treats": ConsumableItem(
+        name="Treats",
+        description="tasty treats Heals 50 HP",
+        item_size=1,
+        item_type="treat",
+        value=50
+    ),
+    "medical treats": ConsumableItem(
+        name="medical treats",
+        description="Cures poison & bleeding",
+        item_size=1,
+        item_type="treat"
+    ),
+    "catnip": ConsumableItem(
+        name="catnip",
+        description="Makes you feel good +20 HP +5 speed",
+        item_size=1,
+        item_type="treat",
+        value=20
+    ),
+}
+class Player:
+    def __init__(self, position, inventory_size=5):
+        self.position = position
+        self.inventory = []
+        self.inventory_size = inventory_size
+
+    def move(self, direction):
+        row, col = self.position
+        if direction == pygame.K_LEFT:
+            self.position = [row, col - 1]
+        elif direction == pygame.K_RIGHT:
+            self.position = [row, col + 1]
+        elif direction == pygame.K_UP:
+            self.position = [row - 1, col]
+        elif direction == pygame.K_DOWN:
+            self.position = [row + 1, col]
 class Game:
+     
      def __init__(self):
         self.asset_loader = AssetLoader("images", "sounds", "fonts")
         self.asset_loader.load_all()
@@ -42,6 +113,7 @@ class Game:
         self.initialize_game()
 
      def initialize_game(self):  
+        self.load_maze("maze_1")  # Load the desired maze during initialization
         self.WIDTH, self.HEIGHT = 1250, 1250
         self.tile_size = 50
         self.image_dir = "images"
@@ -53,7 +125,7 @@ class Game:
         self.icon = self.images["player"]
         self.game_over = False
         self.game_win = False
-        self.state = "PLAYING"
+        self.state = "PLAYING"  # Set initial state
         self.reset_player_and_npcs()  # New method to reset player and NPCs
         
         game_loc_dir = os.path.dirname(__file__)
@@ -62,8 +134,18 @@ class Game:
         
         self.player = Player(position=self.player_positions[0], inventory_size=5)  # Set player position and inventory size
         self.npcs = [NPC(position=pos, maze=self.mazes[0]) for pos in self.npc_positions[0]]  # Ensure using the first maze
-        self.items_in_game = self.mazes[0].generate_items(Consumable_items)  # Adjust as needed
-     
+        self.items_in_game = self.mazes[0].generate_items(Consumable_items)
+     def draw_maze(self):
+        for row in range(len(self.current_maze.layout)):
+            for col in range(len(self.current_maze.layout[row])):
+                tile_value = self.current_maze.layout[row][col]
+                if tile_value == 1:  # Path
+                    self.screen.blit(self.images["path"], (col * self.tile_size, row * self.tile_size))
+                elif tile_value == 3:  # Wall
+                    self.screen.blit(self.images["wall"], (col * self.tile_size, row * self.tile_size))
+                # Add more conditions for other elements if needed, like goal or border
+
+
      def display_game_over(self):
         font = pygame.font.Font(None, 74)
         text = font.render("Game Over! Press any key to restart.", True, (255, 0, 0))
@@ -80,70 +162,142 @@ class Game:
         self.screen.blit(text, text_rect)
         pygame.display.flip()
 
+     def move(self, direction):
+        row, col = self.position
+        new_position = [row, col]
+
+        if direction == pygame.K_LEFT:
+            new_position[1] -= 1
+        elif direction == pygame.K_RIGHT:
+            new_position[1] += 1
+        elif direction == pygame.K_UP:
+            new_position[0] -= 1
+        elif direction == pygame.K_DOWN:
+            new_position[0] += 1
+
+        if self.is_move_valid(new_position[0], new_position[1]):
+            self.position = new_position
+
+     def add_to_inventory(self, item):
+        if len(self.inventory) < self.inventory_size:
+            self.inventory.append(item)
+            return True
+        else:
+            return False
 
      def restart_game(self):
         self.initialize_game()  # Reset game state
         self.state = "PLAYING"
      def update_game(self):
-    # Example check for win/lose conditions
-        if self.player.health <= 0:
-            self.game_over = True
-        elif self.player.position == self.mazes[0].goal_position:  # Assuming you have a goal position
-            self.game_win = True
-    
+         for npc in self.npcs:
+            npc.move()
+            self.check_game_state()  # Move each NPC 
+         # Example check for win/lose conditions
+         if self.player.health <= 0:
+             self.game_over = True
+         elif self.player.position == self.mazes[0].goal_position:  # Assuming you have a goal position
+             self.game_win = True
      def main_loop(self):
         while True:
+            self.handle_events()
+            
+            if self.state == "PLAYING":
+                # Handle player movement input
+                keys = pygame.key.get_pressed()  # Get the current state of all keys
+                direction = None
+                
+                if keys[pygame.K_LEFT]:
+                    direction = pygame.K_LEFT
+                elif keys[pygame.K_RIGHT]:
+                    direction = pygame.K_RIGHT
+                elif keys[pygame.K_UP]:
+                    direction = pygame.K_UP
+                elif keys[pygame.K_DOWN]:
+                    direction = pygame.K_DOWN
+                
+                if direction:  # If there's a valid direction input
+                    action = Actions(self.player, None)  # Create an Actions instance
+                    new_row, new_col = self.player.position
+
+                    if direction == pygame.K_LEFT:
+                        new_col -= 1
+                    elif direction == pygame.K_RIGHT:
+                        new_col += 1
+                    elif direction == pygame.K_UP:
+                        new_row -= 1
+                    elif direction == pygame.K_DOWN:
+                        new_row += 1
+
+                    # Check if the move is valid before updating the player position
+                    if action.is_move_valid(new_row, new_col, self.current_maze.layout):
+                        self.player.move(direction)  # Update player position if valid
+
+                self.update_game()  # Update game logic
+                self.render()       # Render the game visuals
+                self.clock.tick(30)  # Control the frame rate
+
+            elif self.state == "GAME_OVER":
+                self.display_game_over()
+                self.wait_for_keypress()
+            elif self.state == "GAME_WIN":
+                self.display_game_win()
+                self.wait_for_keypress()
+
+
+     def handle_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if self.state in ("GAME_OVER", "GAME_WIN"):
+                    self.restart_game()  # Restart game on key press
+
+     def check_game_state(self):
+        if self.player.health <= 0:
+            self.state = "GAME_OVER"
+        elif self.player.position == self.current_maze.goal_position:  # Adjust this to your actual goal position
+            self.state = "GAME_WIN"
+
+     def wait_for_keypress(self):
+        waiting = True
+        while waiting:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
                 elif event.type == pygame.KEYDOWN:
-                    if self.game_over or self.game_win:
-                        self.restart_game()  # Restart game on key press
-            if not self.game_over and not self.game_win:
-                for npc in self.npcs:
-                    npc.move()  # Update NPC positions
-                    self.check_game_state()  # Check if the game has ended
-                    self.render()  # Render game elements
-                    self.clock.tick(30)
-     def check_game_state(self):
-        if self.game_over:
-            self.display_game_over()
-            self.wait_for_keypress()
-        elif self.game_win:
-            self.display_game_win()
-            self.wait_for_keypress()
+                    waiting = False
+                    self.restart_game()  # Restart game after key press
 
-        def wait_for_keypress(self):
-            waiting = True
-            while waiting:
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        pygame.quit()
-                        sys.exit()
-                    elif event.type == pygame.KEYDOWN:
-                        waiting = False
-                        self.restart_game()
 #renders the game
      def render(self):
         self.screen.blit(self.images["background"], (0, 0))
+        self.draw_maze()  # Draw the maze
         self.draw_player()
         self.draw_npcs()
         self.draw_items()
+        pygame.display.flip()
 
 
-     def load_mazes_from_directory(self, directory_path):
-        mazes = []
-        for file_name in os.listdir(directory_path):
-            maze = Maze.load_from_file(os.path.join(directory_path, file_name))
-            mazes.append(maze)
-        
-            # Extracting player, item, and NPC positions from the maze instances
-            player_positions = [maze.player_position for maze in mazes]
-            item_positions = [maze.item_positions for maze in mazes]
-            npc_positions = [maze.npc_positions for maze in mazes]
-            return mazes, player_positions, item_positions, npc_positions
-     
+
+     def load_maze(self, maze_file):
+        file_path = os.path.join("mazes", maze_file)
+        maze = Maze.load_from_file(file_path)
+
+        if maze:
+            self.current_maze = maze
+            self.player_positions = maze.player_position
+            self.item_positions = maze.item_positions
+            self.npc_positions = maze.npc_positions
+            self.reset_player_and_npcs()  # Reset player and NPCs based on loaded maze
+        else:
+            print(f"Error loading maze from {file_path}")
+
+     def reset_player_and_npcs(self):
+            self.player = Player(position=self.player_positions, inventory_size=5)
+            self.npcs = [NPC(position=pos, maze=self.current_maze) for pos in self.npc_positions]
+    
      def initialize_images(self):
          return {
              "path": pygame.image.load(os.path.join(self.image_dir, 'path_image.png')),
@@ -164,7 +318,6 @@ class Game:
          images["player"] = pygame.transform.scale(images["player"], (tile_size, tile_size))
          images["npc"] = pygame.transform.scale(images["npc"], (tile_size, tile_size))
          images["item"] = pygame.transform.scale(images["item"], (tile_size, tile_size))
-         images["background"] = pygame.transform.scale(images["background"], (width, height))
 class AssetLoader:
     def __init__(self, image_dir, sound_dir, font_dir):
         self.image_dir = image_dir
@@ -192,9 +345,7 @@ class AssetLoader:
     def load_all(self):
         self.load_images()
         self.load_sounds()
-        self.load_fonts()
-    
-    
+        self.load_fonts()    
 class Maze:
     def __init__(self, layout, player_position, npc_positions, item_positions):
         self.layout = layout
@@ -233,36 +384,32 @@ class Maze:
         return valid_positions
 
     def generate_items(self, items):
-        """Place items in predefined or random valid locations"""
+        print("Generating items...")
+        """Place items in predefined or random valid locations."""
         valid_positions = self.get_valid_positions()
-        for item_data in items:
-            if "position" not in item_data:
-                # Randomize item placement if no predefined position
+        
+        for item in items.values():  # Iterate directly over the item objects
+            if item.get_item_position() is None:  # Check if the item has no position
                 random_pos = random.choice(valid_positions)
                 valid_positions.remove(random_pos)
-                item_data["position"] = random_pos
+                item.set_position(random_pos)  # Set the item's position
+        
         return items
 
-
-#is running
+    print("Finished generating items.")
 class NPC:
     def __init__(self, position, maze):
         self.position = position
-        self.maze = maze  
+        self.maze = maze
+        self.speed = 3  # You can adjust speed as needed
 
-    
-
-#what is a player
-class Player:
-    def __init__(self, position, inventory_size=5):
-        self.position = position
-        self.inventory = []
-        self.inventory_size = inventory_size
-
-    def move(self, direction):
-        row, col = self.position
-        new_position = [row, col]
-
+    def move(self):
+        # Example logic for random movement
+        possible_directions = [pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP, pygame.K_DOWN]
+        direction = random.choice(possible_directions)
+        
+        new_position = self.position[:]
+        
         if direction == pygame.K_LEFT:
             new_position[1] -= 1
         elif direction == pygame.K_RIGHT:
@@ -271,32 +418,27 @@ class Player:
             new_position[0] -= 1
         elif direction == pygame.K_DOWN:
             new_position[0] += 1
-
-        if self.is_move_valid(new_position[0], new_position[1]):
+        
+        if self.is_move_valid(new_position):
             self.position = new_position
 
-    def add_to_inventory(self, item):
-        if len(self.inventory) < self.inventory_size:
-            self.inventory.append(item)
-            return True
-        else:
-            return False
+    def is_move_valid(self, position):
+        # Check if the new position is valid (e.g., not a wall)
+        return self.maze.is_valid_position(position) 
+
+    def is_valid_position(self, position):
+        row, col = position
+        # Check if the position is within bounds and if it's a path (1)
+        return (0 <= row < len(self.layout) and 
+                0 <= col < len(self.layout[0]) and 
+                self.layout[row][col] == 1)
+
+#what is a player
 
     def is_inventory_full(self):
         return len(self.inventory) >= self.inventory_size
         #now that self is self, and self knows where self is. let see if self can move self.
     #how does a palyer move
-    def move(self, direction):
-        row, col = self.position
-        if direction == pygame.K_LEFT:
-            self.position = [row, col - 1]
-        elif direction == pygame.K_RIGHT:
-            self.position = [row, col + 1]
-        elif direction == pygame.K_UP:
-            self.position = [row - 1, col]
-        elif direction == pygame.K_DOWN:
-            self.position = [row + 1, col]
-
     def add_to_inventory(self, item):
         if len(self.inventory) < self.inventory_size:
             self.inventory.append(item)
@@ -306,73 +448,8 @@ class Player:
 
     def is_inventory_full(self):
         return len(self.inventory) >= self.inventory_size        
-# for making an item i need to define what paramters(values)atributes w/e im using for the item in the self (self): part
-# had to go deeper and deaper into what is a thing.
-class Item:
-    def __init__(self, position):
-        self.position = position
-
-    def get_position(self):
-        return self.position
-
-    def set_position(self, position):
-        self.position = position
-#atributes of the item
-class item_attributes(Item):
-    def __init__(self, item, item_type, item_name, item_value, item_weight):
-        self.item = item  # Reference to an Item instance
-        self.item_type = item_type  # Will categorize the item
-        self.item_name = item_name  # Name of the item
-        self.item_weight = item_weight  # Will use weight for inventory management
-        self.item_value = item_value
-
-    def __str__(self):
-        return f"{self.item_name} is a {self.item_type} and weighs {self.item_weight} and it's value is {self.item_value}"
-
-    def get_item_position(self):
-        return self.item.get_position()
-#atributes of the consumable itesm defined
-class ConsumableItem(item_attributes):
-    def __init__(self, name, description, weight, item_type, value=None):
-        super().__init__(name, description, weight, item_type)
-        self.value = value  #value is the amount the item heals or buffs the player
-Consumeable_items = {
-    "food": ConsumableItem(
-        name="food",
-        description="Heals 10 HP",
-        weight=1,
-        item_type="food",
-        value=10
-    ),
-    "tiny scratching post": ConsumableItem(
-        name="tiny scratching post",
-        description="Sharpens claws a small amount",
-        weight=1,
-        item_type="object"
-    ),
-    "tasty treats": ConsumableItem(
-        name="Treats",
-        description="tasty treats Heals 50 HP",
-        weight=1,
-        item_type="treat",
-        value=50
-    ),
-    "medical treats": ConsumableItem(
-        name="medical treats",
-        description="Cures poison & bleeding",
-        weight=1,
-        item_type="treat"
-    ),
-    "catnip": ConsumableItem(
-        name="catnip",
-        description="Makes you feel good +20 HP +5 speed",
-        weight=1,
-        item_type="treat",
-        value=20
-    ),
-}
-#class objects: #(the bunny)
 class Actions:
+
     def __init__(self, player, item):
         self.player = player
         self.item = item
@@ -383,18 +460,19 @@ class Actions:
                 self.player.add_to_inventory(self.item)  # Add item to player's inventory
                 self.item.position = None  # Remove item from the game
                 print("You picked up the item!")
-        else:print("inventory full")
-    #is move valid
-    def is_move_valid(new_row, new_col):
-        num_rows = 25
-        num_cols = 25
+            else:
+                print("Inventory full")
+
+    def is_move_valid(self, new_row, new_col, maze):
+        num_rows = len(maze)
+        num_cols = len(maze[0])
         valid = True
 
         # Check if the new row is outside play space
         if new_row < 0 or new_row >= num_rows:
             valid = False
 
-        # Check if the new column out of play space
+        # Check if the new column is out of play space
         if new_col < 0 or new_col >= num_cols:
             valid = False
 
@@ -405,19 +483,3 @@ class Actions:
 
         # Return the validity status
         return valid
-
-    # def game_end():
-    #     pygame.display.flip()
-    #     waiting_for_keypress = True
-    #     while waiting_for_keypress:
-    #         for event in pygame.event.get():
-    #             if event.type == pygame.QUIT:
-    #                 pygame.quit()
-    #                 sys.exit()
-    #             elif event.type == pygame.KEYDOWN:
-    #                 waiting_for_keypress = False
-    #                 break
-# this check will be when object is made as npc's wont interract with items
-# def check_item_pickup_NPC():
-
-
