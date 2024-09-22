@@ -27,3 +27,6 @@ maze = [#MAZE WALL OF ANNOYING
   [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3],
   
 ]
+NPC_POSITIONS = [(1, 1), (23, 23), (23, 1), (1, 23)]
+PLAYER_POSITIONS = (1, 1)
+ITEM_POSITIONS = [(23, 23), (23, 1), (1, 23)]

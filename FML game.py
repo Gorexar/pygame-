@@ -15,7 +15,6 @@ import pygame
 import sys
 import os
 import random
-import json
 
  #class to run the game defaults and game loop i think
     #class Game_Defaults:
@@ -29,15 +28,7 @@ class Game_Defaults:
         "item_pos": [2, 3],
         "game_win": False,
         "game_over": False,
-        "npc_positions": [
-            [1, 1],  # NPC 1
-            [12, 12],  # NPC 2
-            [7, 7],  # NPC 3
-            [12, 12],  # NPC 4
-            [3, 17],  # NPC 5
-            [12, 12],  # NPC 6
-            [22, 22],  # NPC 7
-        ],
+        "npc_positions": []
     }
      
      def __init__(self):
@@ -53,38 +44,75 @@ class Game_Defaults:
             self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
             pygame.display.set_caption("Maze Game for Anastazja!") 
             self.icon = self.images["player"]
-            self.player_pos = [2,2]
-            self.item_pos = [2,3]
+            self.player = Player(position=self.player_positions[0])
+            self.item = Item(position=self.item_positions[0])
             self.game_win = False
             self.game_over = False
-            self.npc_positions = [
-         [1, 1],  # NPC 1
-         [12, 12],  # NPC 2
-         [7, 7],  # NPC 3
-         [12, 12],  # NPC 4
-         [3, 17],  # NPC 5
-         [12, 12],  # NPC 6
-         [22, 22],  # NPC 7
-       ]
+            self.npcs = [NPC(position=pos) for pos in self.npc_positions[0]]
+            self.player = Player(position=self.player_positions[0])
+
+            game_loc_dir = os.path.dirname(__file__)
+            directory_path = os.path.join(game_loc_dir, "mazes")
+            self.mazes, self.player_positions, self.item_positions, self.npc_positions = self.load_mazes_from_directory(directory_path)
+           # self.item = Item(position=self.item_positions[0])
+           # self.item_attributes = ItemAttributes(
+            #    item=self.item,
+           #     item_type="Consumable",
+           #     item_name="Health Potion",
+           #     item_value=50,
+           #     item_weight=1
+        
          
          ## had to read up on how to use OS to read files in the installed location, not my personal PC HD LOC
          #this looks for where the game (this file) is located. then looks for the mazes folder and loads the maze
          # this will allow me to add more mazes later and have them load in the game
-            game_loc_dir = os.path.dirname(__file__)
-            directory_path = os.path.join(game_loc_dir, "mazes")
-            self.mazes = self.load_mazes_from_directory(directory_path)
+        
 
-     #this is taking the maze file ive created and loading it into the game as a maze its using a list of lists
+     #this is taking the maze file ive created and loading it into the game as a maze its using a list of lists also trying to add in dfault npc postions from map to map
      def load_mazes_from_directory(self, directory_path):
-            mazes = []
-            for file_name in os.listdir(directory_path):
-                with open(os.path.join(directory_path, file_name), "r") as file:
-                    maze = []
-                    for line in file:
-                        maze.append([int(char) for char in line.strip()])
-                    mazes.append(maze)
-            return mazes
-     
+        mazes = []
+        player_positions = []
+        item_positions = []
+        npc_positions = []
+        for file_name in os.listdir(directory_path):
+            with open(os.path.join(directory_path, file_name), "r") as file:
+                maze = []
+                player_pos = None
+                item_pos = None
+                npc_pos = []
+                reading_player_position = False
+                reading_item_position = False
+                reading_npc_positions = False
+                for line in file:
+                    line = line.strip()
+                    if line == "PLAYER_POSITION:":
+                        reading_player_position = True
+                        reading_item_position = False
+                        reading_npc_positions = False
+                        continue
+                    elif line == "ITEM_POSITION:":
+                        reading_player_position = False
+                        reading_item_position = True
+                        reading_npc_positions = False
+                        continue
+                    elif line == "NPC_POSITIONS:":
+                        reading_player_position = False
+                        reading_item_position = False
+                        reading_npc_positions = True
+                        continue
+                    if reading_player_position:
+                        player_pos = [int(x) for x in line.split(',')]
+                    elif reading_item_position:
+                        item_pos = [int(x) for x in line.split(',')]
+                    elif reading_npc_positions:
+                        npc_pos.append([int(x) for x in line.split(',')])
+                    else:
+                        maze.append([int(char) for char in line])
+                mazes.append(maze)
+                player_positions.append(player_pos)
+                item_positions.append(item_pos)
+                npc_positions.append(npc_pos)
+        return mazes, player_positions, item_positions, npc_positions
      
      def initialize_images(self):
          return {
@@ -193,28 +221,32 @@ class Player:
             self.position = [row + 1, col]
 # for making an item i need to define what paramters(values)atributes w/e im using for the item in the self (self): part
 # had to go deeper and deaper into what is a thing.
-class item:
-    def __init__(self, position): #what is self......
+class Item:
+    def __init__(self, position):
         self.position = position
-        #where is self....
+
     def get_position(self):
         return self.position
-        #you know where self is, but lets get it again
+
     def set_position(self, position):
         self.position = position
 
-
-# if not careful i could spider web out classes and types and function hierarchies ad nauseum
-class item_attributes:
-    def __init__(self, item_type, item_name, item_position,item_value, item_weight):
-        self.item_type = item_type #will catagorize the item
-        self.item_name = item_name #name of the item
-        self.item_position = item_position #needs this to track if the player is on the item (picked up possible or not )
-        self.item_weight = item_weight #will use weight for inventory management
+class item_Attributes:
+    def __init__(self, item, item_type, item_name, item_value, item_weight):
+        self.item = item  # Reference to an Item instance
+        self.item_type = item_type  # Will categorize the item
+        self.item_name = item_name  # Name of the item
+        self.item_weight = item_weight  # Will use weight for inventory management
         self.item_value = item_value
+
     def __str__(self):
-        return f"{self.item_name} is a {self.item_type} and weighs {self.item_weight} and is at {self.item_position}, it's value is {self.item_value}"
-    
+        return f"{self.item_name} is a {self.item_type} and weighs {self.item_weight} and it's value is {self.item_value}"
+
+    def get_item_position(self):
+        return self.item.get_position()
+        
+
+
 
 
 #class item_types(item):
