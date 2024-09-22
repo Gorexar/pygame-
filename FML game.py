@@ -192,21 +192,38 @@ class Player:
         elif direction == pygame.K_DOWN:
             self.position = [row + 1, col]
 # for making an item i need to define what paramters(values)atributes w/e im using for the item in the self (self): part
+# had to go deeper and deaper into what is a thing.
+class item:
+    def __init__(self, position): #what is self......
+        self.position = position
+        #where is self....
+    def get_position(self):
+        return self.position
+        #you know where self is, but lets get it again
+    def set_position(self, position):
+        self.position = position
+
 
 # if not careful i could spider web out classes and types and function hierarchies ad nauseum
-class item:
+class item_attributes:
     def __init__(self, item_type, item_name, item_position,item_value, item_weight):
         self.item_type = item_type #will catagorize the item
         self.item_name = item_name #name of the item
         self.item_position = item_position #needs this to track if the player is on the item (picked up possible or not )
         self.item_weight = item_weight #will use weight for inventory management
-        self.item_value = item_value #will use value for item effects heal/buffs etc
+        self.item_value = item_value
+    def __str__(self):
+        return f"{self.item_name} is a {self.item_type} and weighs {self.item_weight} and is at {self.item_position}, it's value is {self.item_value}"
+    
 
 
-class item_types(item):
-    def __init__(self,ConsumableItem, Game_win_lose_items):
-        self.ConsumableItem = ConsumableItem
-        self.Game_win_lose_items = Game_win_lose_items
+#class item_types(item):
+   # def __init__(self,ConsumableItem, Game_win_lose_items):
+       # self.ConsumableItem = ConsumableItem
+        #self.Game_win_lose_items = Game_win_lose_items
+
+
+
 #setting this up the most fk'd up way possible, but i need to learn how to use classes and inheritance
 # if i do it now i wont have to re-write it later. i think. #polymorphism sure why not...
 class ConsumableItem(Item):
