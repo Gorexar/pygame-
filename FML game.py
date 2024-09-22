@@ -191,18 +191,100 @@ class Player:
             self.position = [row - 1, col]
         elif direction == pygame.K_DOWN:
             self.position = [row + 1, col]
-# for making an item i need to define what paramters im using for the item in the self (self): part
+# for making an item i need to define what paramters(values)atributes w/e im using for the item in the self (self): part
 
 # if not careful i could spider web out classes and types and function hierarchies ad nauseum
-class Item:
-    def __init__(self, item_type, item_name, item_position): #item_value#
-        self.item_type = item_type
-        self.item_name = item_name
-        self.item_position = item_position
+class item:
+    def __init__(self, item_type, item_name, item_position,item_value, item_weight):
+        self.item_type = item_type #will catagorize the item
+        self.item_name = item_name #name of the item
+        self.item_position = item_position #needs this to track if the player is on the item (picked up possible or not )
+        self.item_weight = item_weight #will use weight for inventory management
+        self.item_value = item_value #will use value for item effects heal/buffs etc
+
+
+class item_types(item):
+    def __init__(self,ConsumableItem, Game_win_lose_items):
+        self.ConsumableItem = ConsumableItem
+        self.Game_win_lose_items = Game_win_lose_items
+#setting this up the most fk'd up way possible, but i need to learn how to use classes and inheritance
+# if i do it now i wont have to re-write it later. i think. #polymorphism sure why not...
+class ConsumableItem(Item):
+    def __init__(self, name, description, weight, item_type, value=None):
+        super().__init__(name, description, weight, item_type)
+        self.value = value  #value is the amount the item heals or buffs the player
+Consumeable_items = {
+    "food": ConsumableItem(
+        name="food",
+        description="Heals 10 HP",
+        weight=1,
+        item_type="food",
+        value=10
+    ),
+    "tiny scratching post": ConsumableItem(
+        name="tiny scratching post",
+        description="Sharpens claws a small amount",
+        weight=1,
+        item_type="object"
+    ),
+    "tasty treats": ConsumableItem(
+        name="Treats",
+        description="tasty treats Heals 50 HP",
+        weight=1,
+        item_type="treat",
+        value=50
+    ),
+    "medical treats": ConsumableItem(
+        name="medical treats",
+        description="Cures poison & bleeding",
+        weight=1,
+        item_type="treat"
+    ),
+    "catnip": ConsumableItem(
+        name="catnip",
+        description="Makes you feel good +20 HP +5 speed",
+        weight=1,
+        item_type="treat",
+        value=20
+    ),
+}
+#class Game_win_lose_items(item):
+
+
+
         #self.item_value = item_value
         #item is an item, and it has a type, a name, and a position. 
-            
+    #def use/consume item (will need for HUD and inventory) god help me)
+    #def interact with item
+    #def  
+    #  creates a sub class that pulls veriables from the item class
+
 #
+    def use(self):
+        # Define what happens when the item is used
+        if self.value:
+            print(f"{self.name} used! It heals {self.value} HP.")
+        else:
+            print(f"{self.name} used! {self.description}")
+
+    def __str__(self):
+        return f"ConsumableItem(name={self.name}, type={self.item_type}, description={self.description}, weight={self.weight}, value={self.value})"    
+
+# only one game win/lose condition atm
+Game_win_lose_items = {
+    "bunny": {
+        "name": "bunny",
+        "description": "A cute bunny that you need to catch to win the game.",
+        "type": "objective"
+    }
+}
+    
+
+
+
+#
+
+
 #
 #class rules:
    # def is_move_valid(new_row, new_col):
