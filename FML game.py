@@ -290,6 +290,7 @@ class Game:
         self.icon = self.images["player"]
         self.game_over = False
         self.game_win = False
+        self.current_maze = maze
         self.state = "PLAYING"  # Set initial state
         #self.inventory = []#
 
@@ -307,6 +308,9 @@ class Game:
         self.npc_positions = self.npc_positions[self.current_maze_index]
         self.player = Player(self.player_position)
         self.npcs = [NPC(position=pos, maze=self.current_maze) for pos in self.npc_positions]  # Initialize npcs attribute
+        print("Initializing game...")
+        print("NPC positions:", self.npc_positions)
+        print("Maze:", self.current_maze)
     def initialize_images(self):
             # Load and return images
             images = {
@@ -423,12 +427,12 @@ class Game:
     def update_game(self):
             for npc in self.npcs:
                 npc.move()
-                self.check_game_state()  # Move each NPC 
-            # Example check for win/lose conditions
-            if self.player.health <= 0:
-                self.game_over = True
-            elif self.player.position == self.mazes[0].goal_position:  # Assuming you have a goal position
-                self.game_win = True
+                # self.check_game_state()  # Move each NPC 
+            # # Example check for win/lose conditions
+            # if self.player.health <= 0:
+            #     self.game_over = True
+            # elif self.player.position == self.mazes[0].goal_position:  # Assuming you have a goal position
+            #     self.game_win = True
         
     
     def load_maze(self, maze_file):
@@ -576,6 +580,9 @@ class Game:
             self.render()
             pygame.display.flip()
             self.clock.tick(60)
+            self.initialize_game()
+            
+            
 if __name__ == "__main__":
     maze = Maze.load_from_file("mazes/maze_1.json")
     if maze:
