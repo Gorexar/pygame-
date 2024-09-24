@@ -327,6 +327,9 @@ class Game:
         self.image_dir = "images"
         self.images = self.initialize_images()  # Ensure this method is defined
         self.resize_images(self.images, self.tile_size, self.WIDTH, self.HEIGHT)
+        self.images["background"] = pygame.image.load(os.path.join(self.image_dir, "backgrounds/background_image_light.png"))
+        background_width, background_height = self.images["background"].get_size() #over_Rides the background image size for now
+        self.screen = pygame.display.set_mode((background_width, background_height))
         # Initialize the Pygame clock and display
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
