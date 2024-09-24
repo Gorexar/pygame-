@@ -16,6 +16,8 @@ class AssetLoader:
         self.images["wall"] = pygame.image.load(os.path.join(self.image_dir, "sprites/wall.png"))
         self.images["border"] = pygame.image.load(os.path.join(self.image_dir, "sprites/border.png"))
         self.images["path"] = pygame.image.load(os.path.join(self.image_dir, "sprites/path.png"))
+        self.images["item"] = pygame.image.load(os.path.join(self.image_dir, "sprites/Scraching_post_item.png"))
+       
         # more images go here later ^^
     def load_all(self):
         self.load_images()
@@ -94,9 +96,9 @@ class Item:
       
     def get_position(self):
         return self.position
-
-    def set_position(self, position):
-        self.position = position
+            #recursive?
+    # def set_position(self, position):
+    #     self.position = position
     
     def draw(self, screen):
         """Draw the player on the screen."""
@@ -140,6 +142,13 @@ class ConsumableItem(item_attributes):
         super().__init__(item, item_type, name, value, item_size)
         
         self.value = value  # This is specific to ConsumableItem
+#where i create items
+# Example usage to create an instance of ConsumableItem
+
+
+
+
+
 Consumeable_items = {
     "food": ConsumableItem(
         name="food",
@@ -402,6 +411,7 @@ class Game:
             print(os.path.join(self.image_dir, "sprites/npc.png"))
             print(os.path.join(self.image_dir, "sprites/path.png"))
             print(os.path.join(self.image_dir, "sprites/wall.png"))
+            print(os.path.join(self.image_dir, "sprites/Scraching_post_item.png"))
             images = {
                 "player": pygame.image.load(os.path.join(self.image_dir, "sprites/player.png")),
                 "npc": pygame.image.load(os.path.join(self.image_dir, "sprites/npc.png")),
@@ -441,7 +451,7 @@ class Game:
                     item_positions.append(maze_instance.item_positions)
                     npc_positions.append(maze_instance.npc_positions)
         return mazes, player_positions, item_positions, npc_positions
-    
+    ## Border and WALL are the same thing right now and 0 represents wall. palse holder for updated tilsest and refined game scope 
     def draw_maze(self):
         if not hasattr(self, 'current_maze') or self.current_maze is None:
             print("Error: current_maze is not initialized.")
@@ -452,9 +462,11 @@ class Game:
                 tile_value = self.current_maze.layout[row][col]
                 if tile_value == 1:  # Path
                     self.screen.blit(self.images["path"], (col * self.tile_size, row * self.tile_size))
-                elif tile_value == 5:  # Wall
+                elif tile_value == 5 or tile_value == 3:                    
                     self.screen.blit(self.images["wall"], (col * self.tile_size, row * self.tile_size))
-                # Add more conditions for other elements if needed, like goal or border
+                elif tile_value == 0:  # Wall
+                    self.screen.blit(self.images["border"], (col * self.tile_size, row * self.tile_size))
+                # Add more conditions for other elements if needed goal etc
 
     def get_random_position(self, value):
         print(type(self.current_maze))  # Should be <class '__main__.Maze'>
