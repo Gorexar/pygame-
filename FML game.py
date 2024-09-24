@@ -24,7 +24,7 @@ class Maze: #the maze and how it functions (maze layout and maze data player loc
         self.player_position = player_position
         self.npc_positions = npc_positions
         self.item_positions = item_positions
-
+        self.tile_size = 50  # Set your desired tile size (in pixels)
     @classmethod #idk yet has to do with the json demon file
     def load_from_file(cls, file_path):
         try:
@@ -186,20 +186,23 @@ class Player:
 
     
     def move(self, direction, maze):
-        row, col = self.position
-        if direction == pygame.K_LEFT:
-            new_position = (row, col - 1)
-        elif direction == pygame.K_RIGHT:
-            new_position = (row, col + 1)
-        elif direction == pygame.K_UP:
-            new_position = (row - 1, col)
-        elif direction == pygame.K_DOWN:
-            new_position = (row + 1, col)
+        """Move the player in the given direction, checking maze boundaries."""
+        new_position = list(self.position)
+        
+        if direction == "up":
+            new_position[0] -= 1
+        elif direction == "down":
+            new_position[0] += 1
+        elif direction == "left":
+            new_position[1] -= 1
+        elif direction == "right":
+            new_position[1] += 1
+        
+        # Check if the new position is valid in the maze
+        if maze.is_valid_position(tuple(new_position)):
+            self.position = tuple(new_position)
         else:
-            return
-
-        if maze.is_valid_position(new_position):
-            self.position = new_position
+            print("Player cannot move there. It's blocked.")
 #npc managment
 class NPC:
     def __init__(self, image, position, tile_size, maze=None):
@@ -208,29 +211,27 @@ class NPC:
         self.tile_size = tile_size  # Tile size for movement
         self.maze = maze  # Store the maze if needed for pathfinding or logic
 
-    def draw(self, screen):
-        """Draw the NPC on the screen."""
-        screen.blit(self.image, (self.position[1] * self.tile_size, self.position[0] * self.tile_size))
-    def move(self):
-        # Example logic for random movement
-        possible_directions = [pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP, pygame.K_DOWN]
-        direction = random.choice(possible_directions)
-        
-        new_position = self.position[:]
-        
-        if direction == pygame.K_LEFT:
-            new_position[1] -= 1
-        elif direction == pygame.K_RIGHT:
-            new_position[1] += 1
-        elif direction == pygame.K_UP:
+    
+    def move(self, maze):
+        """Move the NPC in a random direction, checking maze boundaries."""
+        directions = ["up", "down", "left", "right"]
+        direction = random.choice(directions)
+        new_position = list(self.position)
+
+        if direction == "up":
             new_position[0] -= 1
-        elif direction == pygame.K_DOWN:
+        elif direction == "down":
             new_position[0] += 1
-            new_position[0] += 1
-        
-        # Check if the new position is valid before updating
-        if self.is_move_valid(new_position):
-            self.position = new_position
+        elif direction == "left":
+            new_position[1] -= 1
+        elif direction == "right":
+            new_position[1] += 1
+
+        # Check if the new position is valid in the maze
+        if maze.is_valid_position(tuple(new_position)):
+            self.position = tuple(new_position)
+        else:
+            print(f"NPC tried to move {direction}, but was blocked.")
 
     def is_move_valid(self, new_position):
         return self.maze.is_valid_position(new_position)  # Call the maze's method to check validity 
@@ -241,7 +242,9 @@ class NPC:
         return (0 <= row < len(self.layout) and 
                 0 <= col < len(self.layout[0]) and 
                 self.layout[row][col] == 1)
-
+    def draw(self, screen):
+        """Draw the NPC on the screen."""
+        screen.blit(self.image, (self.position[1] * self.tile_size, self.position[0] * self.tile_size))
 #what is a player
 
     def is_inventory_full(self):
@@ -257,9 +260,6 @@ class NPC:
 
     def is_inventory_full(self):
         return len(self.inventory) >= self.inventory_size        
-#action magment
-
-
 
 class Actions:
 
@@ -303,22 +303,27 @@ class Game:
         self.asset_loader = AssetLoader("images")
         self.asset_loader.load_all()
         self.images = self.asset_loader.images
+        self.tile_size = 50  # Set your desired tile size (in pixels)
+         # Initialize player and NPCs
+        self.player = Player(self.images["player"], (1, 1), self.tile_size)
+        self.npcs = [NPC(self.images["npc"], (3, 4), self.tile_size), NPC(self.images["npc"], (5, 6), self.tile_size)]
         
-        # Game settings
-        self.settings = {
-            "health": 5,
-            "npc_speed": 3,
-            "tile_size": 50,
-            "damage": 5,
-            "player_speed": 3,
-
-            # Add more settings as needed
-        }
         self.state = "PLAYING" # Set initial state
 
         # Initialize player and NPC positions
         self.player_positions = []  # Initialize player_positions
         self.npc_positions = []     # Initialize npc_positions
+    def handle_input(self):
+       # """Handle player input for movement."""#
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_UP]:
+            self.player.move("up", self.current_maze)
+        elif keys[pygame.K_DOWN]:
+            self.player.move("down", self.current_maze)
+        elif keys[pygame.K_LEFT]:
+            self.player.move("left", self.current_maze)
+        elif keys[pygame.K_RIGHT]:
+            self.player.move("right", self.current_maze)
 
     def initialize_game(self):
         self.WIDTH, self.HEIGHT = 1250, 1250
@@ -368,10 +373,14 @@ class Game:
         self.npcs = [NPC(image=self.images["npc"], position=pos, tile_size=self.tile_size, maze=self.current_maze) for pos in self.npc_positions[self.current_maze_index]]
 
 
-        # Debugging output
-        print("Game initialized!")
-        print("NPC positions:", self.npc_positions[self.current_maze_index])
-        print("Maze:", self.current_maze)
+        # # Debugging output
+        # print("Game initialized!")
+        # print("NPC positions:", self.npc_positions[self.current_maze_index])
+        # print("Maze:", self.current_maze)
+        # print("Player position:", self.player_position)
+        # print("Item positions:", self.item_positions[self.current_maze_index])
+        # self.initialization_printed = True
+        
     def draw_player(self):
         #Draw the player on the screen by calling the player's draw method
         self.player.draw(self.screen)
@@ -473,21 +482,24 @@ class Game:
         self.screen.blit(text, text_rect)
         pygame.display.flip()
 
-    def move(self, direction):
-        row, col = self.position
-        new_position = [row, col]
-
-        if direction == pygame.K_LEFT:
-            new_position[1] -= 1
-        elif direction == pygame.K_RIGHT:
-            new_position[1] += 1
-        elif direction == pygame.K_UP:
+    def move(self, direction, maze):
+        """Move the player in the given direction, checking maze boundaries."""
+        new_position = list(self.position)
+        
+        if direction == "up":
             new_position[0] -= 1
-        elif direction == pygame.K_DOWN:
+        elif direction == "down":
             new_position[0] += 1
-
-        if self.is_move_valid(new_position[0], new_position[1]):
-            self.position = new_position
+        elif direction == "left":
+            new_position[1] -= 1
+        elif direction == "right":
+            new_position[1] += 1
+        
+        # Check if the new position is valid in the maze
+        if maze.is_valid_position(tuple(new_position)):
+            self.position = tuple(new_position)
+        else:
+            print("Player cannot move there. It's blocked.")
 
     def add_to_inventory(self, item):
         if len(self.inventory) < self.inventory_size:
@@ -500,12 +512,9 @@ class Game:
         self.initialize_game()  # Reset game state
         self.state = "PLAYING"
     def update_game(self):
-        if not hasattr(self, 'npcs') or self.npcs is None:
-            print("NPCs not initialized, resetting...")
-            self.reset_player_and_npcs()  # Reinitialize NPCs if not set
-
+    # """Update the positions of all game entities."""
         for npc in self.npcs:
-          npc.move()
+            npc.move(self.current_maze)
                 # self.check_game_state()  # Move each NPC 
             # # Example check for win/lose conditions
             # if self.player.health <= 0:
@@ -593,7 +602,17 @@ class Game:
         elif self.state == "GAME_WIN":
             self.display_game_win()
             self.wait_for_keypress()
-
+    def handle_input(self):
+        #"""Handle player input for movement."#
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_UP]:
+            self.player.move("up", self.current_maze)
+        elif keys[pygame.K_DOWN]:
+            self.player.move("down", self.current_maze)
+        elif keys[pygame.K_LEFT]:
+            self.player.move("left", self.current_maze)
+        elif keys[pygame.K_RIGHT]:
+            self.player.move("right", self.current_maze)
     def handle_events(self):
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
@@ -656,11 +675,11 @@ class Game:
                 self.render()
                 pygame.display.flip()
                 self.clock.tick(60)
-                print(f"Current maze index: {self.current_maze_index}")
-                print(f"Available mazes: {len(self.mazes)}")
-                print(f"Available player positions: {len(self.player_positions)}")
-                print(f"Available NPC positions: {len(self.npc_positions)}")
-                print(f"Available item positions: {len(self.item_positions)}")
+                # print(f"Current maze index: {self.current_maze_index}")
+                # print(f"Available mazes: {len(self.mazes)}")
+                # print(f"Available player positions: {len(self.player_positions)}")
+                # print(f"Available NPC positions: {len(self.npc_positions)}")
+                # print(f"Available item positions: {len(self.item_positions)}")
 
 game = Game()
 game.initialize_game()
