@@ -13,6 +13,9 @@ class AssetLoader:
         self.images["background"] = pygame.image.load(os.path.join(self.image_dir, "backgrounds/background_image_light.png"))
         self.images["player"] = pygame.image.load(os.path.join(self.image_dir, "sprites/cat.png"))
         self.images["npc"] = pygame.image.load(os.path.join(self.image_dir, "sprites/wolf.png"))
+        self.images["wall"] = pygame.image.load(os.path.join(self.image_dir, "sprites/wall.png"))
+        self.images["border"] = pygame.image.load(os.path.join(self.image_dir, "sprites/border.png"))
+        self.images["path"] = pygame.image.load(os.path.join(self.image_dir, "sprites/path.png"))
         # more images go here later ^^
     def load_all(self):
         self.load_images()
@@ -446,7 +449,7 @@ class Game:
                 tile_value = self.current_maze.layout[row][col]
                 if tile_value == 1:  # Path
                     self.screen.blit(self.images["path"], (col * self.tile_size, row * self.tile_size))
-                elif tile_value == 3:  # Wall
+                elif tile_value == 5:  # Wall
                     self.screen.blit(self.images["wall"], (col * self.tile_size, row * self.tile_size))
                 # Add more conditions for other elements if needed, like goal or border
 
@@ -680,10 +683,10 @@ class Game:
         
     def initialize_images(self):
             return {
-                "path": pygame.image.load(os.path.join(self.image_dir, 'sprites/path_image.png')),
-                "wall": pygame.image.load(os.path.join(self.image_dir, 'sprites/grass2.png')),
+                "path": pygame.image.load(os.path.join(self.image_dir, 'sprites/path.png')),
+                "wall": pygame.image.load(os.path.join(self.image_dir, 'sprites/wall.png')),
                 "goal": pygame.image.load(os.path.join(self.image_dir, 'sprites/goal.png')),
-                "border": pygame.image.load(os.path.join(self.image_dir, 'sprites/locust_tree.png')),
+                "border": pygame.image.load(os.path.join(self.image_dir, 'sprites/border.png')),
                 "player": pygame.image.load(os.path.join(self.image_dir, 'sprites/cat.png')),
                 "npc": pygame.image.load(os.path.join(self.image_dir, 'sprites/wolf.png')),
                 "item": pygame.image.load(os.path.join(self.image_dir, 'sprites/goal.png')),
