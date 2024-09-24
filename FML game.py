@@ -305,6 +305,9 @@ class Game:
         self.images = self.asset_loader.images
         self.tile_size = 50  # Set your desired tile size (in pixels)
          # Initialize player and NPCs
+        self.current_maze_index = 0  # Start with the first maze
+        self.mazes = []  # Initialize mazes as an empty list
+        self.current_maze = None
         self.player = Player(self.images["player"], (1, 1), self.tile_size)
         self.npcs = [NPC(self.images["npc"], (3, 4), self.tile_size), NPC(self.images["npc"], (5, 6), self.tile_size)]
         
@@ -313,17 +316,7 @@ class Game:
         # Initialize player and NPC positions
         self.player_positions = []  # Initialize player_positions
         self.npc_positions = []     # Initialize npc_positions
-    def handle_input(self):
-       # """Handle player input for movement."""#
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_UP]:
-            self.player.move("up", self.current_maze)
-        elif keys[pygame.K_DOWN]:
-            self.player.move("down", self.current_maze)
-        elif keys[pygame.K_LEFT]:
-            self.player.move("left", self.current_maze)
-        elif keys[pygame.K_RIGHT]:
-            self.player.move("right", self.current_maze)
+    
 
     def initialize_game(self):
         self.WIDTH, self.HEIGHT = 1250, 1250
@@ -331,21 +324,19 @@ class Game:
         self.image_dir = "images"
         self.images = self.initialize_images()  # Ensure this method is defined
         self.resize_images(self.images, self.tile_size, self.WIDTH, self.HEIGHT)
-        
         # Initialize the Pygame clock and display
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
         pygame.display.set_caption("Maze Game for Anastazja!")
-        
         # Set the window icon
         self.icon = self.images["player"]
-        
         # Game states
         self.game_over = False
         self.game_win = False
         self.state = "PLAYING"
-
         print("Initializing game...")
+        print("NPC positions:", self.npc_positions)
+        print("Maze:", self.current_maze)
 
         # Load mazes and positions
         directory_path = "mazes"  # Adjust this to your directory
@@ -372,19 +363,29 @@ class Game:
         # Initialize NPCs for the current maze
         self.npcs = [NPC(image=self.images["npc"], position=pos, tile_size=self.tile_size, maze=self.current_maze) for pos in self.npc_positions[self.current_maze_index]]
 
-
-        # # Debugging output
-        # print("Game initialized!")
-        # print("NPC positions:", self.npc_positions[self.current_maze_index])
-        # print("Maze:", self.current_maze)
-        # print("Player position:", self.player_position)
-        # print("Item positions:", self.item_positions[self.current_maze_index])
-        # self.initialization_printed = True
-        
+        # Debugging output (move this after the maze is initialized)
+        print("Game initialized!")
+        print("NPC positions:", self.npc_positions[self.current_maze_index])
+        print("Maze:", self.current_maze)
+        print("Player position:", self.player_position)
+        print("Item positions:", self.item_positions[self.current_maze_index])
+    def handle_input(self):
+       # """Handle player input for movement."""#
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_UP]:
+            self.player.move("up", self.current_maze)
+        elif keys[pygame.K_DOWN]:
+            self.player.move("down", self.current_maze)
+        elif keys[pygame.K_LEFT]:
+            self.player.move("left", self.current_maze)
+        elif keys[pygame.K_RIGHT]:
+            self.player.move("right", self.current_maze)
+    
     def draw_player(self):
         #Draw the player on the screen by calling the player's draw method
         self.player.draw(self.screen)
     def draw_npcs(self):
+       
         #Draw the npcs on the screen by calling the player's draw method
         self.player.draw(self.screen)
     def draw_items(self):
@@ -515,6 +516,7 @@ class Game:
     # """Update the positions of all game entities."""
         for npc in self.npcs:
             npc.move(self.current_maze)
+            npc.draw(self.screen)
                 # self.check_game_state()  # Move each NPC 
             # # Example check for win/lose conditions
             # if self.player.health <= 0:
@@ -614,20 +616,42 @@ class Game:
         elif keys[pygame.K_RIGHT]:
             self.player.move("right", self.current_maze)
     def handle_events(self):
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            elif event.type == pygame.KEYDOWN:
+                # Game states like game over or win
+                if self.state in ("GAME_OVER", "GAME_WIN"):
+                    self.restart_game()
+                    pygame.display.flip()  # Restart game on key press
+                
+                elif self.state == "PLAYING":
+                    # Handle movement keys
+                    if event.key in (pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT):
+                        direction = None
+                        if event.key == pygame.K_UP:
+                            direction = "up"
+                        elif event.key == pygame.K_DOWN:
+                            direction = "down"
+                        elif event.key == pygame.K_LEFT:
+                            direction = "left"
+                        elif event.key == pygame.K_RIGHT:
+                            direction = "right"
+                        
+                        # Move the player if direction is determined
+                        if direction:
+                            self.player.move(direction, self.current_maze)
+
+                    # Specific key handling (e.g., escape to quit)
+                    elif event.key == pygame.K_ESCAPE:
                         pygame.quit()
                         sys.exit()
-                    elif event.type == pygame.KEYDOWN:
-                        if self.state in ("GAME_OVER", "GAME_WIN"):
-                            self.restart_game()
-                            pygame.display.flip()  # Restart game on key press
-                        elif self.state == "PLAYING":
-                            if event.key == pygame.K_ESCAPE:
-                                pygame.quit()
-                                sys.exit()
-                            elif event.key in (pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT):
-                                self.player.move(event.key) 
+
+                    # Capture any other key for future use (e.g., text input later)
+                    else:
+                        print(f"Key {pygame.key.name(event.key)} was pressed, but no action is defined yet.")
     def wait_for_keypress(self):
             waiting = True
             while waiting:
@@ -647,7 +671,8 @@ class Game:
             self.draw_npcs()
             self.draw_items()
             pygame.display.flip()
-
+            for npc in self.npcs:
+                npc.draw(self.screen)
     def reset_player_and_npcs(self):
                 self.player = Player(position=self.player_positions, inventory_size=5)
                 self.npcs = [NPC(image=self.images["npc"], position=pos, tile_size=self.tile_size, maze=self.current_maze) for pos in self.npc_positions[self.current_maze_index]]
