@@ -129,7 +129,7 @@ class item_attributes(Item):
     def get_item_position(self):
         return self.item.get_position()
 class ConsumableItem(item_attributes):
-    def __init__(self, name, description, item_size, item_type, value=None):
+    def __init__(self, name, item_size, item_type, value=None):
         # Create an Item instance with a default position (e.g., None)
         item = Item(position=None)
         
@@ -140,33 +140,33 @@ class ConsumableItem(item_attributes):
 Consumeable_items = {
     "food": ConsumableItem(
         name="food",
-        description="Heals 10 HP",
+        ###description="Heals 10 HP",
         item_size=1,
         item_type="food",
         value=10
     ),
     "tiny scratching post": ConsumableItem(
         name="tiny scratching post",
-        description="Sharpens claws a small amount",
+        ###description="Sharpens claws a small amount",
         item_size=1,
         item_type="object"
     ),
     "tasty treats": ConsumableItem(
         name="Treats",
-        description="tasty treats Heals 50 HP",
+        ###description="tasty treats Heals 50 HP",
         item_size=1,
         item_type="treat",
         value=50
     ),
     "medical treats": ConsumableItem(
         name="medical treats",
-        description="Cures poison & bleeding",
+        ###description="Cures poison & bleeding",
         item_size=1,
         item_type="treat"
     ),
     "catnip": ConsumableItem(
         name="catnip",
-        description="Makes you feel good +20 HP +5 speed",
+        ###description="Makes you feel good +20 HP +5 speed",
         item_size=1,
         item_type="treat",
         value=20
@@ -591,7 +591,7 @@ class Game:
 
                 # Check if the move is valid before updating the player position
                 if action.is_move_valid(new_row, new_col, self.current_maze.layout):
-                    self.player.move(direction)  # Update player position if valid
+                    self.player.move("direction", self.current_maze)  # Update player position if valid
             
             self.render()  # Render the game visuals
             self.clock.tick(30)  # Control the frame rate
