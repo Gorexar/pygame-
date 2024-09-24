@@ -78,7 +78,6 @@ class Maze: #the maze and how it functions (maze layout and maze data player loc
                 item.set_position(random_pos)  # Set the item's position
         
         return items
-
     print("Finished generating items.")
 class Item:
     def __init__(self, position):
@@ -95,6 +94,11 @@ class Item:
 
     def set_position(self, position):
         self.position = position
+    
+    def draw(self, screen):
+        """Draw the player on the screen."""
+        # Convert grid position to pixel position and blit the image on the screen
+        screen.blit(self.image, (self.position[1] * self.tile_size, self.position[0] * self.tile_size))
 class objects:
     def __init__(self, position):
             self.position = position
@@ -369,10 +373,13 @@ class Game:
         print("NPC positions:", self.npc_positions[self.current_maze_index])
         print("Maze:", self.current_maze)
     def draw_player(self):
-        """Draw the player on the screen by calling the player's draw method."""
+        #Draw the player on the screen by calling the player's draw method
         self.player.draw(self.screen)
     def draw_npcs(self):
-        """Draw the player on the screen by calling the player's draw method."""
+        #Draw the npcs on the screen by calling the player's draw method
+        self.player.draw(self.screen)
+    def draw_items(self):
+       #Draw the items on the screen by calling the player's draw method
         self.player.draw(self.screen)
     def initialize_images(self):
             print(os.path.join(self.image_dir, "sprites/player.png"))
