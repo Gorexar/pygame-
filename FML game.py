@@ -4,7 +4,7 @@ import os
 print("Files in mazes directory:", os.listdir("C:/Users/gorex/Desktop/pygame!/mazes/"))
 import random
 import json
-#main game logic
+#loads the images and possibly other assets
 class AssetLoader:
     def __init__(self, image_dir):
         self.image_dir = image_dir
@@ -13,49 +13,59 @@ class AssetLoader:
         self.images["background"] = pygame.image.load(os.path.join(self.image_dir, "backgrounds/background_image_light.png"))
         self.images["player"] = pygame.image.load(os.path.join(self.image_dir, "sprites/cat.png"))
         self.images["npc"] = pygame.image.load(os.path.join(self.image_dir, "sprites/wolf.png"))
-        # Load other images similarly
+        # more images go here later ^^
     def load_all(self):
         self.load_images()
-class Maze:
+        #i can call load_all to call all the images ive loaded into the load_images function
+class Maze: #the maze and how it functions (maze layout and maze data player locations item npc are all loaded in seprtate.json 
+    # init self layout player position npc positions item positions <-- turns these into veribles i can define later
     def __init__(self, layout, player_position, npc_positions, item_positions):
         self.layout = layout
         self.player_position = player_position
         self.npc_positions = npc_positions
         self.item_positions = item_positions
 
-    @classmethod
+    @classmethod #idk yet has to do with the json demon file
     def load_from_file(cls, file_path):
         try:
             with open(file_path, 'r') as f:
                 maze_data = json.load(f)
             
-            # Validate the loaded data
+            # what keys are required in the json file (the maze file)
             required_keys = ["layout", "player_position", "npc_positions", "item_positions"]
             if not all(key in maze_data for key in required_keys):
                 raise ValueError("Maze data is missing required keys.")
-            
-            layout = maze_data["layout"]
-            player_position = maze_data["player_position"]
-            npc_positions = maze_data["npc_positions"]
-            item_positions = maze_data["item_positions"]
-            
+            # if the keys are met then it will create definitions of layout player position npc positions and item positions<-- as veribles set by the map file
+            layout = maze_data["layout"] #in map file
+            player_position = maze_data["player_position"] #in map file
+            npc_positions = maze_data["npc_positions"] #in map file
+            item_positions = maze_data["item_positions"] #in map file
+            #will add here for objects.
             return cls(layout, player_position, npc_positions, item_positions)
         
         except (FileNotFoundError, json.JSONDecodeError, ValueError) as e:
             print(f"Error loading maze from {file_path}: {e}")
-            return None  # or raise an exception, depending on your error handling strategy
-
-    def get_valid_positions(self):
+            return None  
+        #error if the maze dosent load
+        
+    def get_valid_positions(self): #defining the valid positions in the maze 
         """Return a list of valid positions (not walls or obstacles)"""
-        valid_positions = []
-        for row in range(len(self.layout)):
-            for col in range(len(self.layout[row])):
-                if self.layout[row][col] == 0:  # Assuming 0 represents a walkable path
+        valid_positions = [] #valid_positions [] empty list that is going to ask what locations are in the list 
+        for row in range(len(self.layout)):#complicated string to read the layout of the maze
+            for col in range(len(self.layout[row])):#complicated string to read the layout of the maze
+                if self.layout[row][col] not in (3, 5):  # Exclude walls and obstacles
                     valid_positions.append([row, col])
         return valid_positions
+    
     def is_valid_position(self, position):
-        return self.current_maze.is_valid_position(position)  # Use the maze's method
-        # Check if the position is within bounds and if it's a path (1)
+       #Check if a position is valid within the maze#
+        row, col = position
+        # Check if the position is within bounds and is not a wall
+        return (0 <= row < len(self.layout) and 
+                0 <= col < len(self.layout[0]) and 
+                self.layout[row][col] == 1)  # Assuming 1 represents a valid path
+    # definding how to "spawn" items in the game, askes if there is a set location in the maze file. 
+    # otherwise it will ask what positions are considered vaid, and spawn them in random positions.
     def generate_items(self, items):
         print("Generating items...")
         """Place items in predefined or random valid locations."""
@@ -64,7 +74,7 @@ class Maze:
         for item in items.values():  # Iterate directly over the item objects
             if item.get_item_position() is None:  # Check if the item has no position
                 random_pos = random.choice(valid_positions)
-                valid_positions.remove(random_pos)
+                valid_positions.remove(random_pos) # removes each item's location from the valid positions list give by the mazelayout
                 item.set_position(random_pos)  # Set the item's position
         
         return items
@@ -73,6 +83,21 @@ class Maze:
 class Item:
     def __init__(self, position):
         self.position = position
+
+    def get_position(self):
+        return self.position
+
+    def set_position(self, position):
+        self.position = position
+      
+    def get_position(self):
+        return self.position
+
+    def set_position(self, position):
+        self.position = position
+class objects:
+    def __init__(self, position):
+            self.position = position
 
     def get_position(self):
         return self.position
@@ -145,11 +170,17 @@ Consumeable_items = {
 }
 # character management
 class Player:
-    def __init__(self, position, inventory_size=5):
-        self.position = position
-        self.inventory = []
-        self.inventory_size = inventory_size
+    def __init__(self, image, position, tile_size):
+        self.image = image  # The player's image
+        self.position = position  # The player's position (row, col) in the grid
+        self.tile_size = tile_size  # Size of each tile in pixels
 
+    def draw(self, screen):
+        """Draw the player on the screen."""
+        # Convert grid position to pixel position and blit the image on the screen
+        screen.blit(self.image, (self.position[1] * self.tile_size, self.position[0] * self.tile_size))
+
+    
     def move(self, direction, maze):
         row, col = self.position
         if direction == pygame.K_LEFT:
@@ -167,11 +198,15 @@ class Player:
             self.position = new_position
 #npc managment
 class NPC:
-    def __init__(self, position, maze):
-        self.position = position
-        self.maze = maze
-        self.speed = 3  # You can adjust speed as needed
+    def __init__(self, image, position, tile_size, maze=None):
+        self.image = image
+        self.position = position  # The NPC's position (row, col)
+        self.tile_size = tile_size  # Tile size for movement
+        self.maze = maze  # Store the maze if needed for pathfinding or logic
 
+    def draw(self, screen):
+        """Draw the NPC on the screen."""
+        screen.blit(self.image, (self.position[1] * self.tile_size, self.position[0] * self.tile_size))
     def move(self):
         # Example logic for random movement
         possible_directions = [pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP, pygame.K_DOWN]
@@ -219,6 +254,9 @@ class NPC:
     def is_inventory_full(self):
         return len(self.inventory) >= self.inventory_size        
 #action magment
+
+
+
 class Actions:
 
     def __init__(self, player, item):
@@ -284,40 +322,68 @@ class Game:
         self.image_dir = "images"
         self.images = self.initialize_images()  # Ensure this method is defined
         self.resize_images(self.images, self.tile_size, self.WIDTH, self.HEIGHT)
+        
+        # Initialize the Pygame clock and display
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
-        pygame.display.set_caption("Maze Game for Anastazja!") 
+        pygame.display.set_caption("Maze Game for Anastazja!")
+        
+        # Set the window icon
         self.icon = self.images["player"]
+        
+        # Game states
         self.game_over = False
         self.game_win = False
-        self.current_maze = maze
-        self.state = "PLAYING"  # Set initial state
-        #self.inventory = []#
+        self.state = "PLAYING"
 
+        print("Initializing game...")
+
+        # Load mazes and positions
         directory_path = "mazes"  # Adjust this to your directory
         self.mazes, self.player_positions, self.item_positions, self.npc_positions = self.load_mazes_from_directory(directory_path)
-        # Optionally handle if no mazes were loaded
+
+        # Check if any mazes were loaded
         if not self.mazes:
             print("No maze loaded.")
-            return  # Handle appropriately
+            return  # Exit initialization if no mazes are available
 
-        # Initialize player and NPCs
+        # Initialize the first maze and player/NPCs
         self.current_maze_index = 0  # Start with the first maze
-        self.current_maze = Maze(self.mazes[self.current_maze_index], self.player_positions[self.current_maze_index], self.npc_positions[self.current_maze_index], self.item_positions[self.current_maze_index])
+        self.current_maze = Maze(
+            self.mazes[self.current_maze_index], 
+            self.player_positions[self.current_maze_index], 
+            self.npc_positions[self.current_maze_index], 
+            self.item_positions[self.current_maze_index]
+        )
+        
+        # Initialize the player
         self.player_position = self.player_positions[self.current_maze_index]
-        self.npc_positions = self.npc_positions[self.current_maze_index]
-        self.player = Player(self.player_position)
-        self.npcs = [NPC(position=pos, maze=self.current_maze) for pos in self.npc_positions]  # Initialize npcs attribute
-        print("Initializing game...")
-        print("NPC positions:", self.npc_positions)
+        self.player = Player(self.images["player"], self.player_position, self.tile_size)
+        
+        # Initialize NPCs for the current maze
+        self.npcs = [NPC(image=self.images["npc"], position=pos, tile_size=self.tile_size, maze=self.current_maze) for pos in self.npc_positions[self.current_maze_index]]
+
+
+        # Debugging output
+        print("Game initialized!")
+        print("NPC positions:", self.npc_positions[self.current_maze_index])
         print("Maze:", self.current_maze)
+    def draw_player(self):
+        """Draw the player on the screen by calling the player's draw method."""
+        self.player.draw(self.screen)
+    def draw_npcs(self):
+        """Draw the player on the screen by calling the player's draw method."""
+        self.player.draw(self.screen)
     def initialize_images(self):
-            # Load and return images
+            print(os.path.join(self.image_dir, "sprites/player.png"))
+            print(os.path.join(self.image_dir, "sprites/npc.png"))
+            print(os.path.join(self.image_dir, "sprites/path.png"))
+            print(os.path.join(self.image_dir, "sprites/wall.png"))
             images = {
-                "player": pygame.image.load(os.path.join(self.image_dir, "player.png")),
-                "npc": pygame.image.load(os.path.join(self.image_dir, "npc.png")),
-                "path": pygame.image.load(os.path.join(self.image_dir, "path.png")),
-                "wall": pygame.image.load(os.path.join(self.image_dir, "wall.png")),
+                "player": pygame.image.load(os.path.join(self.image_dir, "sprites/player.png")),
+                "npc": pygame.image.load(os.path.join(self.image_dir, "sprites/npc.png")),
+                "path": pygame.image.load(os.path.join(self.image_dir, "sprites/path.png")),
+                "wall": pygame.image.load(os.path.join(self.image_dir, "sprites/wall.png")),
                 # Add more images as needed
             }
             return images
@@ -375,10 +441,12 @@ class Game:
         return random.choice(valid_positions) if valid_positions else None
 
     def reset_player_and_npcs(self):
+        
         """Reset player and NPC positions."""
         self.player_positions = self.get_random_position(1)  # Update the player position
         self.npc_positions = [self.get_random_position(1) for _ in range(4)]  # Update NPC positions
-        self.player.position = self.player_positions  # Set player to new position
+        self.player.position = self.player_positions
+          # Set player to new position
 
 # Initialize the game
 
@@ -425,8 +493,12 @@ class Game:
         self.initialize_game()  # Reset game state
         self.state = "PLAYING"
     def update_game(self):
-            for npc in self.npcs:
-                npc.move()
+        if not hasattr(self, 'npcs') or self.npcs is None:
+            print("NPCs not initialized, resetting...")
+            self.reset_player_and_npcs()  # Reinitialize NPCs if not set
+
+        for npc in self.npcs:
+          npc.move()
                 # self.check_game_state()  # Move each NPC 
             # # Example check for win/lose conditions
             # if self.player.health <= 0:
@@ -434,44 +506,46 @@ class Game:
             # elif self.player.position == self.mazes[0].goal_position:  # Assuming you have a goal position
             #     self.game_win = True
         
-    
-    def load_maze(self, maze_file):
-        file_path = os.path.join("mazes", maze_file)
-        maze = Maze.load_from_file("mazes/maze_1.json")
-        pygame.display.flip()
-        if maze:
-            self.current_maze = maze  # Set the current maze here
+        
+    def load_maze(self, file_path):
+        try:
+            with open(file_path, 'r') as f:
+                return json.load(f)  # Return the maze data as a dictionary
+        except FileNotFoundError:
+            print(f"File not found: {file_path}")
+            return None
+        except json.JSONDecodeError:
+            print(f"Error decoding JSON from file: {file_path}")
+            return None
 
             # Validate player position
-            if not self.is_valid_position(maze.player_position):
+        if not self.is_valid_position(maze.player_position):
                 print(f"Invalid player position: {maze.player_position}. Resetting to default.")
                 self.player_position = self.get_random_position(1)  # Set to a valid position
-            else:
+        else:
                 self.player_position = maze.player_position
 
             # Validate NPC positions
-            self.npc_positions = []
-            for npc_pos in maze.npc_positions:
+                self.npc_positions = []
+        for npc_pos in maze.npc_positions:
                 if self.is_valid_position(npc_pos):
                     self.npc_positions.append(npc_pos)
                 else:
                     print(f"Invalid NPC position: {npc_pos}. Resetting to random position.")
                     self.npc_positions.append(self.get_random_position(1))  # Set to a valid position
 
-            # Validate item positions
-            self.item_positions = []
-            for item_pos in maze.item_positions:
-                if self.is_valid_position(item_pos):
-                    self.item_positions.append(item_pos)
-                else:
-                    print(f"Invalid item position: {item_pos}. Resetting to random position.")
-                    self.item_positions.append(self.get_random_position(1))  # Set to a valid position
+        # Validate item positions
+        self.item_positions = []
+        for item_pos in maze.item_positions:
+            if self.is_valid_position(item_pos):
+                self.item_positions.append(item_pos)
+            else:
+                print(f"Invalid item position: {item_pos}. Resetting to random position.")
+                self.item_positions.append(self.get_random_position(1))  # Set to a valid position
 
-            self.reset_player_and_npcs()  # Reset player and NPCs based on loaded maze
+        self.reset_player_and_npcs()  # Reset player and NPCs based on loaded maze
 
-        else:
-            print(f"Error loading maze from {file_path}")
-
+    def handle_game_states(self):
         # Handle game states
         if self.state == "PLAYING":
             keys = pygame.key.get_pressed()  # Get the current state of all keys
@@ -514,75 +588,78 @@ class Game:
             self.wait_for_keypress()
 
     def handle_events(self):
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                elif event.type == pygame.KEYDOWN:
-                    if self.state in ("GAME_OVER", "GAME_WIN"):
-                        self.restart_game()
-                        pygame.display.flip()  # Restart game on key press
-                    elif self.state == "PLAYING":
-                        if event.key == pygame.K_ESCAPE:
-                            pygame.quit()
-                            sys.exit()
-                        elif event.key in (pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT):
-                            self.player.move(event.key)  # Call the move method of the Player class
-
-    # def check_game_state(self):
-    #     if self.player.health <= 0:
-    #         self.state = "GAME_OVER"
-    #     elif self.player.position == self.current_maze.goal_position:  # Adjust this to your actual goal position
-            self.state = "GAME_WIN"
-
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
+                    elif event.type == pygame.KEYDOWN:
+                        if self.state in ("GAME_OVER", "GAME_WIN"):
+                            self.restart_game()
+                            pygame.display.flip()  # Restart game on key press
+                        elif self.state == "PLAYING":
+                            if event.key == pygame.K_ESCAPE:
+                                pygame.quit()
+                                sys.exit()
+                            elif event.key in (pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT):
+                                self.player.move(event.key) 
     def wait_for_keypress(self):
-        waiting = True
-        while waiting:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                elif event.type == pygame.KEYDOWN:
-                    waiting = False
-                    self.restart_game()  # Restart game after key press
+            waiting = True
+            while waiting:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
+                    elif event.type == pygame.KEYDOWN:
+                        waiting = False
+                        self.restart_game()  # Restart game after key press
 
-#renders the game
+    #renders the game
     def render(self):
-        self.screen.blit(self.images["background"], (0, 0))
-        self.draw_maze()  # Draw the maze
-        self.draw_player()
-        self.draw_npcs()
-        self.draw_items()
-        pygame.display.flip()
+            self.screen.blit(self.images["background"], (0, 0))
+            self.draw_maze()  # Draw the maze
+            self.draw_player()
+            self.draw_npcs()
+            self.draw_items()
+            pygame.display.flip()
 
     def reset_player_and_npcs(self):
-            self.player = Player(position=self.player_positions, inventory_size=5)
-            self.npcs = [NPC(position=pos, maze=self.current_maze) for pos in self.npc_positions]
-    
-    def initialize_images(self):
-         return {
-             "path": pygame.image.load(os.path.join(self.image_dir, 'sprites/path_image.png')),
-             "wall": pygame.image.load(os.path.join(self.image_dir, 'sprites/grass2.png')),
-             "goal": pygame.image.load(os.path.join(self.image_dir, 'sprites/goal.png')),
-             "border": pygame.image.load(os.path.join(self.image_dir, 'sprites/locust_tree.png')),
-             "player": pygame.image.load(os.path.join(self.image_dir, 'sprites/cat.png')),
-             "npc": pygame.image.load(os.path.join(self.image_dir, 'sprites/wolf.png')),
-             "item": pygame.image.load(os.path.join(self.image_dir, 'sprites/goal.png')),
-             "background": pygame.image.load(os.path.join(self.image_dir, 'backgrounds/background_image_light.png'))
-         }
+                self.player = Player(position=self.player_positions, inventory_size=5)
+                self.npcs = [NPC(image=self.images["npc"], position=pos, tile_size=self.tile_size, maze=self.current_maze) for pos in self.npc_positions[self.current_maze_index]]
 
-    
+        
+    def initialize_images(self):
+            return {
+                "path": pygame.image.load(os.path.join(self.image_dir, 'sprites/path_image.png')),
+                "wall": pygame.image.load(os.path.join(self.image_dir, 'sprites/grass2.png')),
+                "goal": pygame.image.load(os.path.join(self.image_dir, 'sprites/goal.png')),
+                "border": pygame.image.load(os.path.join(self.image_dir, 'sprites/locust_tree.png')),
+                "player": pygame.image.load(os.path.join(self.image_dir, 'sprites/cat.png')),
+                "npc": pygame.image.load(os.path.join(self.image_dir, 'sprites/wolf.png')),
+                "item": pygame.image.load(os.path.join(self.image_dir, 'sprites/goal.png')),
+                "background": pygame.image.load(os.path.join(self.image_dir, 'backgrounds/background_image_light.png'))
+            }
+
+        
     def main_loop(self):
-        running = True
-        while running:
-            self.handle_events()
-            self.update_game()
-            self.render()
-            pygame.display.flip()
-            self.clock.tick(60)
-            self.initialize_game()
-            
-            
+            running = True
+            while running:
+                self.initialize_game
+                self.handle_events()
+                self.update_game()
+                self.render()
+                pygame.display.flip()
+                self.clock.tick(60)
+                print(f"Current maze index: {self.current_maze_index}")
+                print(f"Available mazes: {len(self.mazes)}")
+                print(f"Available player positions: {len(self.player_positions)}")
+                print(f"Available NPC positions: {len(self.npc_positions)}")
+                print(f"Available item positions: {len(self.item_positions)}")
+
+game = Game()
+game.initialize_game()
+game.main_loop()
+                
+                
 if __name__ == "__main__":
     maze = Maze.load_from_file("mazes/maze_1.json")
     if maze:
