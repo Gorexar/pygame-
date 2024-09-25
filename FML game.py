@@ -24,41 +24,46 @@ class AssetLoader:
         #i can call load_all to call all the images ive loaded into the load_images function
 class Maze: #the maze and how it functions (maze layout and maze data player locations item npc are all loaded in seprtate.json 
     # init self layout player position npc positions item positions <-- turns these into veribles i can define later
-    def __init__(self, layout, player_position, npc_positions, item_positions):
+    def __init__(self, layout, player_position, npc_positions, item_positions, items= None):
         self.layout = layout
         self.player_position = player_position
         self.npc_positions = npc_positions
         self.item_positions = item_positions
+        self.items = items or self.generate_items()  # Generate items if not provided
         self.tile_size = 50  # Set your desired tile size (in pixels)
-    @classmethod #idk yet has to do with the json demon file
+    @classmethod
     def load_from_file(cls, file_path):
+        """
+        Load the maze and items from a JSON file.
+        If item positions are missing in the file, generate items randomly.
+        """
         try:
             with open(file_path, 'r') as f:
                 maze_data = json.load(f)
+
+            layout = maze_data["layout"]
+            player_position = maze_data["player_position"]
+            npc_positions = maze_data["npc_positions"]
             
-            # what keys are required in the json file (the maze file)
-            required_keys = ["layout", "player_position", "npc_positions", "item_positions"]
-            if not all(key in maze_data for key in required_keys):
-                raise ValueError("Maze data is missing required keys.")
-            # if the keys are met then it will create definitions of layout player position npc positions and item positions<-- as veribles set by the map file
-            layout = maze_data["layout"] #in map file
-            player_position = maze_data["player_position"] #in map file
-            npc_positions = maze_data["npc_positions"] #in map file
-            item_positions = maze_data["item_positions"] #in map file
-            #will add here for objects.
-            return cls(layout, player_position, npc_positions, item_positions)
-        
+            # Check if item positions are available in the JSON, otherwise create items randomly
+            item_positions = maze_data.get("item_positions")
+            if item_positions:
+                items = [ScratchingPostItem(pos) for pos in item_positions]  # Create items with positions from JSON
+            else:
+                items = None  # Items will be generated randomly
+
+            return cls(layout, player_position, npc_positions, items)
+
         except (FileNotFoundError, json.JSONDecodeError, ValueError) as e:
             print(f"Error loading maze from {file_path}: {e}")
-            return None  
-        #error if the maze dosent load
+            return None
         
-    def get_valid_positions(self): #defining the valid positions in the maze 
-        """Return a list of valid positions (not walls or obstacles)"""
-        valid_positions = [] #valid_positions [] empty list that is going to ask what locations are in the list 
-        for row in range(len(self.layout)):#complicated string to read the layout of the maze
-            for col in range(len(self.layout[row])):#complicated string to read the layout of the maze
-                if self.layout[row][col] not in (3, 5):  # Exclude walls and obstacles
+    def get_valid_positions(self):
+    
+        valid_positions = []
+        for row in range(len(self.layout)):
+            for col in range(len(self.layout[row])):
+                if self.layout[row][col] not in (3, 5):  # Assuming 3 and 5 are walls/obstacles
                     valid_positions.append([row, col])
         return valid_positions
     
@@ -71,18 +76,18 @@ class Maze: #the maze and how it functions (maze layout and maze data player loc
                 self.layout[row][col] == 1)  # Assuming 1 represents a valid path
     # definding how to "spawn" items in the game, askes if there is a set location in the maze file. 
     # otherwise it will ask what positions are considered vaid, and spawn them in random positions.
-    def generate_items(self, items):
-        print("Generating items...")
-        """Place items in predefined or random valid locations."""
-        valid_positions = self.get_valid_positions()
+    def generate_items(self):
+        """
+        Generate items with random positions if not provided.
+        This method ensures that items are placed in valid positions.
+        """
+        valid_positions = self.get_valid_positions()  # Get valid positions in the maze
         
-        for item in items.values():  # Iterate directly over the item objects
-            if item.get_item_position() is None:  # Check if the item has no position
-                random_pos = random.choice(valid_positions)
-                valid_positions.remove(random_pos) # removes each item's location from the valid positions list give by the mazelayout
-                item.set_position(random_pos)  # Set the item's position
-        
-        return items
+        # Create the scratching post item with random placement
+        scratching_post = Scraching_post_item()
+        scratching_post.set_random_position(valid_positions)
+
+        return [scratching_post]
     print("Finished generating items.")
 class Item:
     def __init__(self, position):
@@ -93,12 +98,13 @@ class Item:
 
     def set_position(self, position):
         self.position = position
-      
-    def get_position(self):
-        return self.position
-            #recursive?
-    # def set_position(self, position):
-    #     self.position = position
+    
+    def set_random_position(self, valid_positions):
+        if self.position is None:  # Only set a random position if one hasn't been provided
+            self.position = random.choice(valid_positions)
+            valid_positions.remove(self.position)  # Ensure no duplicate positions
+
+
     
     def draw(self, screen):
         """Draw the player on the screen."""
@@ -709,24 +715,50 @@ class Game:
             }
 
         
+class Game:
     def main_loop(self):
-            running = True
-            while running:
-                self.initialize_game
-                self.handle_events()
-                self.update_game()
-                self.render()
-                pygame.display.flip()
-                self.clock.tick(60)
-                # print(f"Current maze index: {self.current_maze_index}")
-                # print(f"Available mazes: {len(self.mazes)}")
-                # print(f"Available player positions: {len(self.player_positions)}")
-                # print(f"Available NPC positions: {len(self.npc_positions)}")
-                # print(f"Available item positions: {len(self.item_positions)}")
+        running = True
+        while running:
+            # Initialize game state
+            self.initialize_game()
 
+    # Handle events like player movement, quitting, etc.
+            self.handle_events()
+
+    # Update the game state (e.g., player movement, NPC movement, etc.)
+            self.update_game()
+
+    # Render all game elements, including items
+            self.render()
+
+    # Display the items in the maze
+            for item in self.maze.items:
+                # Draw each item at its position
+                self.screen.blit(self.asset_loader.images["scraching_post"], 
+                                    (item.position[1] * self.maze.tile_size, 
+                                    item.position[0] * self.maze.tile_size))
+
+    # Check for player-item interactions
+        player_pos = self.player.get_position()
+        for item in self.maze.items:
+            if player_pos == item.get_position():
+                print(f"Player interacted with {item.name}")
+                # Add any additional interaction logic here, such as picking up the item
+
+    # Update the display
+        pygame.display.flip()
+
+    # Cap the frame rate
+        self.clock.tick(30)
+
+  
+
+
+# Run the game
 game = Game()
 game.initialize_game()
 game.main_loop()
+
                 
                 
 if __name__ == "__main__":
