@@ -142,12 +142,6 @@ class ConsumableItem(item_attributes):
         super().__init__(item, item_type, name, value, item_size)
         
         self.value = value  # This is specific to ConsumableItem
-#where i create items
-# Example usage to create an instance of ConsumableItem
-
-
-
-
 
 Consumeable_items = {
     "food": ConsumableItem(
@@ -717,12 +711,12 @@ class Game:
                 self.update_game()
                 self.render()
                 pygame.display.flip()
-                self.clock.tick(60)
-                # print(f"Current maze index: {self.current_maze_index}")
-                # print(f"Available mazes: {len(self.mazes)}")
-                # print(f"Available player positions: {len(self.player_positions)}")
-                # print(f"Available NPC positions: {len(self.npc_positions)}")
-                # print(f"Available item positions: {len(self.item_positions)}")
+                self.clock.tick(20)
+                print(f"Current maze index: {self.current_maze_index}")
+                print(f"Available mazes: {len(self.mazes)}")
+                print(f"Available player positions: {len(self.player_positions)}")
+                print(f"Available NPC positions: {len(self.npc_positions)}")
+                print(f"Available item positions: {len(self.item_positions)}")
 
 game = Game()
 game.initialize_game()
