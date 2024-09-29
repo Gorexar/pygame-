@@ -4,21 +4,11 @@ import pygame  # pygame is used for loading images
 from item_attributes import ItemAttributes  # Import ItemAttributes from item_attributes.py
 
 class ConsumableItem(ItemAttributes):  # ConsumableItem inherits from ItemAttributes
-    def __init__(self, image, position, tile_size, name, item_size, item_type, value=0, description=""):
-        """
-        Initialize a consumable item, inheriting attributes from ItemAttributes.
-
-        :param image: The image representing the item.
-        :param position: The (x, y) position of the item in the maze.
-        :param tile_size: The size of each tile in the maze.
-        :param name: The name of the item (e.g., Health Potion).
-        :param item_size: The size of the item.
-        :param item_type: The type of the item (e.g., consumable).
-        :param value: The initial value or effect strength of the consumable item (default is 0).
-        :param description: A description of the item (optional).
-        """
+    def __init__(self, image, position, tile_size, item_name, item_size, item_type, value=0, description=""):
+        if position is None or position == (None, None):
+            position = (0, 0)  # Default position
         # Call the parent class constructor (ItemAttributes) and pass all required arguments
-        super().__init__(image, position, tile_size, item_type, name, value, item_size)
+        super().__init__(image, position, tile_size, item_type, item_name, value, item_size)
         
         # ConsumableItem-specific attributes
         self.description = description  # Store the description of the item

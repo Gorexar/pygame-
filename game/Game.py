@@ -67,14 +67,14 @@ class Game:
         self.player_position = self.player_positions[self.current_maze_index]
         self.player = Player(self.images["player"], self.player_position, self.tile_size)
 
-        # Initialize NPCs
-        self.npcs = [NPC(image=self.images["npc"], position=pos, tile_size=self.tile_size, maze=self.current_maze)
-                     for pos in self.npc_positions[self.current_maze_index]]
-
-        # Initialize items
+        # Initialize items (always done after loading maze)
         self.items = self.current_maze.generate_items(Consumable_items)
 
+        # Initialize NPCs (after maze and valid positions are set)
+        self.initialize_npcs()
+
         print("Game initialized!")
+
 
     def load_mazes_from_directory(self, directory_path):
         """
@@ -103,39 +103,38 @@ class Game:
         for key in images:
             images[key] = pygame.transform.scale(images[key], (tile_size, tile_size))
         images["background"] = pygame.transform.scale(images["background"], (width, height))
-
+   
     def initialize_npcs(self):
-        # Get a fresh copy of valid positions for NPCs
-        npc_valid_positions = self.current_maze.get_valid_positions()
-
+        valid_positions = self.current_maze.get_valid_positions()  # Get valid walkable positions from the maze
         self.npcs = []
 
-        # Ensure NPC positions are valid
-        for npc_position in self.npc_positions[self.current_maze_index]:
-            # If position is empty or invalid, assign a random valid position
-            if not npc_position or len(npc_position) != 2:
-                print(f"Invalid NPC position detected: {npc_position}. Assigning random valid position.")
-                if npc_valid_positions:
-                    npc_position = random.choice(npc_valid_positions)  # Assign random valid position
-                    npc_valid_positions.remove(npc_position)  # Avoid duplicate positions
+        for idx, npc_position in enumerate(self.npc_positions[self.current_maze_index]):
+            # Check if the position is None or invalid, and assign a random valid position if so
+            if npc_position is None or not self.current_maze.is_valid_position(npc_position):
+                print(f"Invalid NPC position: {npc_position}. Assigning random valid position.")
+                if valid_positions:
+                    npc_position = random.choice(valid_positions)  # Assign a random valid position
+                    valid_positions.remove(npc_position)  # Remove from valid pool to avoid duplication
                 else:
-                    print("No valid positions left for NPC placement!")
-                    continue
-
-            # Ensure position is a tuple (row, col)
-            npc_position = tuple(npc_position)
-
-            # Check if position is valid and create NPC
-            if self.current_maze.is_valid_position(npc_position):
-                npc = NPC(self.images["npc"], npc_position, self.tile_size, maze=self.current_maze)
-                self.npcs.append(npc)
+                    print("No valid positions left for NPCs! Skipping NPC initialization.")
+                    continue  # Skip this NPC if no valid positions are available
             else:
-                print(f"Skipping invalid NPC position: {npc_position}")
+                print(f"Spawning NPC at valid position: {npc_position}")
+
+            # Ensure position is a tuple
+            if isinstance(npc_position, list):
+                npc_position = tuple(npc_position)
+
+            # Initialize the NPC at the valid position
+            npc = NPC(self.images["npc"], npc_position, self.tile_size, maze=self.current_maze)
+            self.npcs.append(npc)
 
         print("NPCs initialized with positions:", [npc.position for npc in self.npcs])
+
+        
     def update_npcs(self):
-            for npc in self.npcs:
-                npc.move(self.current_maze)  # Move the NPCs
+        for npc in self.npcs:
+            npc.move(self.current_maze)  # Move each NPC
 
 
     def handle_input(self):
@@ -163,7 +162,11 @@ class Game:
         Draw NPCs on the screen.
         """
         for npc in self.npcs:
-            npc.draw(self.screen)
+            # Only draw NPCs with valid positions
+            if npc.position and len(npc.position) == 2 and npc.position != (None, None):
+                npc.draw(self.screen)
+            else:
+                print(f"Skipping NPC with invalid position: {npc.position}")
 
     def draw_items(self):
         """
@@ -215,7 +218,7 @@ class Game:
             # Handle player input and update game state
             self.handle_input()
             self.update_npcs()
-            # Render the game visuals
+    
             self.render()
 
             # Control the frame rate (set to 60 FPS)

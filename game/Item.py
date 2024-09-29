@@ -40,12 +40,10 @@ class Item:
 
     def draw(self, screen):
         """
-        Draw the item on the screen at its position.
-        
-        :param screen: The Pygame screen surface to draw the item on.
+        Draw the item on the screen if its position is valid.
         """
-        if not isinstance(screen, pygame.Surface):
-            raise TypeError("Screen must be a valid Pygame Surface object.")
-        
-        x, y = self.position
-        screen.blit(self.image, (x * self.tile_size, y * self.tile_size))
+        if self.position and len(self.position) == 2 and self.position != (None, None):
+            x, y = self.position
+            screen.blit(self.image, (x * self.tile_size, y * self.tile_size))
+        else:
+            print(f"Skipping item with invalid position: {self.position}")

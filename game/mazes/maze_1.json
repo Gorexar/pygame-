@@ -27,7 +27,7 @@
         [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
     ],
     "player_position": [1, 1],
-    "npc_positions": [[],[],[],[],[],[],[],[]],
-    "item_positions": [[], [], [], [], []]
- 
+    "npc_positions": [[null, null], [null, null], [null, null], [null, null], [null, null], [null, null], [null, null], [null, null], [null, null], [null, null], [null, null], [null, null], [null, null], [null, null], [null, null], [null, null], [null, null], [null, null], [null, null]],
+    "item_positions": [[null, null], [null, null], [null, null], [null, null]]
 }
+ 

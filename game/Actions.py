@@ -11,7 +11,7 @@ class Actions:
         self.player = player
         self.npcs = npcs if npcs else []  # List of NPCs
         self.items = items if items else []  # List of items in the game
-
+        
     def player_pickup_item(self):
         """
         Handle the logic for the player picking up an item.
