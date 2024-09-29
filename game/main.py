@@ -1,3 +1,9 @@
+#Items implimented
+#all game files split up 
+# next fix is npcs and items failure to spawn/crash game with no value given random generation of items and npcs broken?
+
+
+
 import os
 import pygame
 from AssetLoader import AssetLoader
