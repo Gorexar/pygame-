@@ -1,4 +1,5 @@
-import pygame
+import os
+import pygame  # pygame is used for loading images
 
 class Item:
     def __init__(self, image, position, tile_size):
@@ -9,6 +10,12 @@ class Item:
         :param position: The (x, y) position of the item in the maze.
         :param tile_size: The size of each tile in the maze.
         """
+        if not isinstance(image, pygame.Surface):
+            raise TypeError("Image must be a valid Pygame Surface object.")
+        
+        if not isinstance(position, tuple) or len(position) != 2:
+            raise ValueError("Position must be a tuple with two values (x, y).")
+        
         self.image = pygame.transform.scale(image, (tile_size, tile_size))
         self.position = position
         self.tile_size = tile_size
@@ -27,6 +34,8 @@ class Item:
         
         :param position: The new (x, y) position of the item.
         """
+        if not isinstance(position, tuple) or len(position) != 2:
+            raise ValueError("Position must be a tuple with two values (x, y).")
         self.position = position
 
     def draw(self, screen):
@@ -35,5 +44,8 @@ class Item:
         
         :param screen: The Pygame screen surface to draw the item on.
         """
+        if not isinstance(screen, pygame.Surface):
+            raise TypeError("Screen must be a valid Pygame Surface object.")
+        
         x, y = self.position
         screen.blit(self.image, (x * self.tile_size, y * self.tile_size))

@@ -1,6 +1,6 @@
-from Item import Item  # Ensure the Item class is in the same directory or adjust the import path accordingly
+from .Item import Item  # Ensure the Item class is in the same directory or adjust the import path accordingly
 
-class item_attributes(Item):
+class ItemAttributes(Item):
     def __init__(self, image, position, tile_size, item_type, item_name, item_value, item_size):
         """
         Initialize the item with additional attributes.
@@ -8,10 +8,10 @@ class item_attributes(Item):
         :param image: The image representing the item.
         :param position: The (x, y) position of the item in the maze.
         :param tile_size: The size of each tile in the maze.
-        :param item_type: The type of the item.
+        :param item_type: The type of the item (e.g., weapon, food, etc.).
         :param item_name: The name of the item.
-        :param item_value: The value of the item.
-        :param item_size: The size of the item.
+        :param item_value: The value of the item (e.g., healing amount, damage, etc.).
+        :param item_size: The size of the item in the inventory.
         """
         super().__init__(image, position, tile_size)
         self.item_type = item_type
@@ -25,7 +25,13 @@ class item_attributes(Item):
         
         :return: A string describing the item.
         """
-        return f"{self.item_name} is a {self.item_type} and weighs {self.item_size} and its value is {self.item_value}"
+        return (
+            f"Item: {self.item_name}\n"
+            f"Type: {self.item_type}\n"
+            f"Size: {self.item_size}\n"
+            f"Value: {self.item_value}\n"
+            f"Position: {self.get_position()}"
+        )
 
     def get_item_position(self):
         """
