@@ -1,5 +1,3 @@
-import os
-import pygame  # pygame is used for loading images
 
 class Actions:
     def __init__(self, player, npcs=None, items=None):
@@ -58,14 +56,7 @@ class Actions:
             print(f"{user.name} doesn't have {item.item_name} in their inventory.")
 
     def is_move_valid(self, new_row, new_col, maze):
-        """
-        Check if a move to a new position is valid within the maze.
-        
-        :param new_row: The row the player is trying to move to.
-        :param new_col: The column the player is trying to move to.
-        :param maze: The maze layout (2D array).
-        :return: True if the move is valid, False otherwise.
-        """
+
         num_rows = len(maze)
         num_cols = len(maze[0])
 

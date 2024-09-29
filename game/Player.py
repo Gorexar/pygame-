@@ -3,24 +3,18 @@ import pygame  # pygame is used for loading images
 
 class Player:
     def __init__(self, image, position, tile_size):
-        """
-        Initialize the Player object with image, position, and tile size.
-        
-        :param image: The player's image.
-        :param position: Tuple (row, col) representing the player's position in the grid.
-        :param tile_size: The size of each tile in pixels.
-        """
+      
         self.image = image  # The player's image
         self.position = position  # The player's position (row, col) in the grid
         self.tile_size = tile_size  # Size of each tile in pixels
 
     def draw(self, screen):
         """
-        Draw the player on the screen.
-        
-        :param screen: Pygame screen surface to draw the player on.
+        Draws the player on the given screen.
+        Args:
+            screen (pygame.Surface): The surface on which the player will be drawn.
         """
-        # Convert grid position to pixel position and blit the image on the screen
+        
         screen.blit(self.image, (self.position[1] * self.tile_size, self.position[0] * self.tile_size))
 
     def move(self, direction, maze):

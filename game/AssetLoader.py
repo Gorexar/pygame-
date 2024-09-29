@@ -3,18 +3,12 @@ import pygame
 
 class AssetLoader:
     def __init__(self, image_dir):
-        """
-        Initialize the asset loader with the directory where images are stored.
-        
-        :param image_dir: Directory where images are stored.
-        """
+
         self.image_dir = image_dir
         self.images = {}
 
     def load_images(self):
-        """
-        Load images from predefined paths into the images dictionary.
-        """
+       #add more images and assets here#
         image_files = {
             "background": "backgrounds/background_image_light.png",
             "player": "sprites/cat.png",
@@ -37,16 +31,9 @@ class AssetLoader:
                 print(f"File not found: {full_path}")
 
     def load_all(self):
-        """
-        Load all images into the images dictionary.
-        """
+        
         self.load_images()
 
     def get_image(self, name):
-        """
-        Retrieve an image from the loaded images by name.
-        
-        :param name: The name of the image to retrieve.
-        :return: The pygame Surface object for the image, or None if not found.
-        """
+       
         return self.images.get(name)

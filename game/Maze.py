@@ -1,5 +1,5 @@
 import json
-import os
+import random
 import pygame  # pygame is used for loading images
 
 class Maze:
@@ -20,12 +20,7 @@ class Maze:
 
     @classmethod
     def load_from_file(cls, file_path):
-        """
-        Load a maze from a JSON file.
-        
-        :param file_path: Path to the maze JSON file.
-        :return: A new instance of Maze, or None if there's an error.
-        """
+
         try:
             with open(file_path, 'r') as f:
                 maze_data = json.load(f)

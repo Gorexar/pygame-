@@ -1,5 +1,6 @@
 import os
 import pygame
+import random
 from AssetLoader import AssetLoader
 from Player import Player
 from NPC import NPC
@@ -66,9 +67,26 @@ class Game:
         self.player = Player(self.images["player"], self.player_position, self.tile_size)
         self.npcs = [NPC(image=self.images["npc"], position=pos, tile_size=self.tile_size, maze=self.current_maze)
                      for pos in self.npc_positions[self.current_maze_index]]
-
+        
+        
+        self.initialize_npcs()
         print("Game initialized!")
 
+    def initialize_npcs(self):
+        """
+        Initialize NPCs at random locations if their positions are not provided.
+        """
+        valid_positions = self.current_maze.get_valid_positions()  # Get valid positions in the maze
+
+        # Create NPCs, assigning random valid positions if needed
+        self.npcs = []
+        for npc_position in self.npc_positions[self.current_maze_index]:
+            if not npc_position:  # If position is blank or None
+                npc_position = random.choice(valid_positions)
+                valid_positions.remove(npc_position)  # Remove this position to avoid duplicates
+
+            npc = NPC(image=self.images["npc"], position=npc_position, tile_size=self.tile_size, maze=self.current_maze)
+            self.npcs.append(npc)
     def load_mazes_from_directory(self, directory_path):
         """
         Load all mazes from a given directory.
@@ -92,7 +110,10 @@ class Game:
     def resize_images(self, images, tile_size, width, height):
         for key in images:
             images[key] = pygame.transform.scale(images[key], (tile_size, tile_size))
-        images["background"] = pygame.transform.scale(images["background"], (width, height))
+    def update_npcs(self):
+        for npc in self.npcs:
+            npc.move(self.current_maze)  # Make sure the NPCs move based on the maze layout
+
 
     def handle_input(self):
         keys = pygame.key.get_pressed()
@@ -112,7 +133,7 @@ class Game:
         for npc in self.npcs:
             npc.draw(self.screen)
 
-    def draw_maze(self):
+    def draw_maze(self): # this is where i can change tile values to change the maze or add more objects as strucures like path/wall/border
         if not hasattr(self, 'current_maze') or self.current_maze is None:
             print("Error: current_maze is not initialized.")
             return
@@ -128,14 +149,14 @@ class Game:
                     self.screen.blit(self.images["border"], (col * self.tile_size, row * self.tile_size))
 
     def render(self):
-        """
-        Render the game visuals.
-        """
+
         self.screen.blit(self.images["background"], (0, 0))
         self.draw_maze()
         self.draw_player()
         self.draw_npcs()
         pygame.display.flip()
+        for npc in self.npcs:
+                npc.draw(self.screen)
 
     def main_loop(self):
         """
@@ -150,8 +171,10 @@ class Game:
             # Handle input, update game state, and render everything
             self.handle_input()
             self.render()
-
-            # Control frame rate
-            self.clock.tick(60)
+            self.update_npcs()
+            
+            
+            # Control frame rate (psudo game speed for now)
+            self.clock.tick(5)
 
         pygame.quit()  # Quit Pygame when the game loop exits
