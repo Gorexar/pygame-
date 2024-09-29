@@ -1,3 +1,8 @@
+# To do list
+# #1 complete transition to multiple game files.
+# #2 refactor the way movement and item interaction is going to be handled. orignal scope was too narrow.
+# 3# flush out the scope of the game and settle on a features and final game design.
+
 import os
 import random
 import json
