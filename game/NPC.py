@@ -1,4 +1,5 @@
 import random
+import pygame
 
 
 
@@ -6,34 +7,42 @@ class NPC:
     def __init__(self, image, position, tile_size, maze=None):
   
         self.image = image
-        self.position = position if position else (0, 0)  # Fallback to (0, 0) if no position provided
+        self.position = position 
         self.tile_size = tile_size
         self.maze = maze
+        self.move_delay = 3500  # Time between moves in milliseconds (3.5 seconds)
+        self.last_move_time = pygame.time.get_ticks()
 
 
     def move(self, maze):
         """
-        Move the NPC in a random direction, checking maze boundaries.
-        :param maze: The maze instance to check valid positions.
+        Move the NPC if enough time has passed since the last move.
         """
-        directions = ["up", "down", "left", "right"]
-        direction = random.choice(directions)
-        new_position = list(self.position)
+        current_time = pygame.time.get_ticks() # Get the current time in milliseconds
+        if current_time - self.last_move_time >= self.move_delay:
+            # Only move if enough time has passed
+            directions = ["up", "down", "left", "right"]
+            direction = random.choice(directions)
+            new_position = list(self.position)
 
-        if direction == "up":
-            new_position[0] -= 1
-        elif direction == "down":
-            new_position[0] += 1
-        elif direction == "left":
-            new_position[1] -= 1
-        elif direction == "right":
-            new_position[1] += 1
+            if direction == "up":
+                new_position[0] -= 1
+            elif direction == "down":
+                new_position[0] += 1
+            elif direction == "left":
+                new_position[1] -= 1
+            elif direction == "right":
+                new_position[1] += 1
 
-        # Check if the new position is valid in the maze
-        if maze.is_valid_position(tuple(new_position)):
-            self.position = tuple(new_position)
-        else:
-            print(f"NPC tried to move at {direction}. Blocked at {new_position}.")
+            # Check if the new position is valid in the maze
+            if maze.is_valid_position(tuple(new_position)):
+                self.position = tuple(new_position)
+                print(f"NPC moved {direction} to {self.position}.")
+            else:
+                print(f"NPC tried to move {direction}, but was blocked.")
+
+            # Update the last move time
+            self.last_move_time = current_time
     def is_move_valid(self, new_position):
    
         return self.maze.is_valid_position(new_position) if self.maze else False

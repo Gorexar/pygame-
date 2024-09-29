@@ -175,6 +175,6 @@ class Game:
             
             
             # Control frame rate (psudo game speed for now)
-            self.clock.tick(5)
+            self.clock.tick(60)
 
         pygame.quit()  # Quit Pygame when the game loop exits
