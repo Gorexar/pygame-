@@ -2,23 +2,20 @@ import os
 import pygame  # pygame is used for loading images
 from ConsumableItem import ConsumableItem  # Import the ConsumableItem class
 
-# Initialize Pygame and load the images
-pygame.init()
+# Load actual image surfaces (Ensure the paths are correct)
+food_image = pygame.image.load(os.path.join("images", "sprites", "food.png"))
+tiny_scratching_post_image = pygame.image.load(os.path.join("images", "sprites", "scratching_post.png"))
+treat_image = pygame.image.load(os.path.join("images", "sprites", "treat.png"))
+medical_treat_image = pygame.image.load(os.path.join("images", "sprites", "medical_treat.png"))
+catnip_image = pygame.image.load(os.path.join("images", "sprites", "catnip.png"))
 
-# Load actual image surfaces
-food_image = pygame.image.load("images/sprites/food.png")  # Make sure the path is correct
-tiny_scratching_post_image = pygame.image.load("images/sprites/scratching_post.png")
-treat_image = pygame.image.load("images/sprites/treat.png")
-medical_treat_image = pygame.image.load("images/sprites/medical_treat.png")
-catnip_image = pygame.image.load("images/sprites/catnip.png")
-
-default_position = (0, 0)  # Replace with actual positions
 tile_size = 50  # Define the size of each tile
 
+# Initialize the consumable items with a placeholder position (e.g., (0, 0))
 Consumable_items = {
     "food": ConsumableItem(
         image=food_image,
-        position=default_position,
+        position=(0, 0),  # Placeholder position, will be set later by the maze
         tile_size=tile_size,
         name="food",
         item_size=1,
@@ -28,7 +25,7 @@ Consumable_items = {
     ),
     "tiny_scratching_post": ConsumableItem(
         image=tiny_scratching_post_image,
-        position=default_position,
+        position=(0, 0),  # Placeholder position, will be set later by the maze
         tile_size=tile_size,
         name="tiny scratching post",
         item_size=1,
@@ -37,7 +34,7 @@ Consumable_items = {
     ),
     "treats": ConsumableItem(
         image=treat_image,
-        position=default_position,
+        position=(0, 0),  # Placeholder position, will be set later by the maze
         tile_size=tile_size,
         name="Treats",
         item_size=1,
@@ -47,7 +44,7 @@ Consumable_items = {
     ),
     "medical_treats": ConsumableItem(
         image=medical_treat_image,
-        position=default_position,
+        position=(0, 0),  # Placeholder position, will be set later by the maze
         tile_size=tile_size,
         name="medical treats",
         item_size=1,
@@ -56,7 +53,7 @@ Consumable_items = {
     ),
     "catnip": ConsumableItem(
         image=catnip_image,
-        position=default_position,
+        position=(0, 0),  # Placeholder position, will be set later by the maze
         tile_size=tile_size,
         name="catnip",
         item_size=1,

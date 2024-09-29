@@ -7,10 +7,10 @@ class NPC:
     def __init__(self, image, position, tile_size, maze=None):
   
         self.image = image
-        self.position = position 
+        self.position = tuple(position) if isinstance(position, list) else position  # Ensure position is a tuple 
         self.tile_size = tile_size
         self.maze = maze
-        self.move_delay = 3500  # Time between moves in milliseconds (3.5 seconds)
+        self.move_delay = 1000  # Time between moves in milliseconds (3.5 seconds)
         self.last_move_time = pygame.time.get_ticks()
 
 
@@ -48,7 +48,12 @@ class NPC:
         return self.maze.is_valid_position(new_position) if self.maze else False
 
     def draw(self, screen):
-   
-        screen.blit(self.image, (self.position[1] * self.tile_size, self.position[0] * self.tile_size))
+        """
+        Draw the NPC on the screen at its current position.
+        """
+        if self.position and len(self.position) == 2:
+            screen.blit(self.image, (self.position[1] * self.tile_size, self.position[0] * self.tile_size))
+        else:
+            print(f"Invalid NPC position detected: {self.position}")
 
-    
+        
