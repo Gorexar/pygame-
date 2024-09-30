@@ -132,9 +132,26 @@ class Game:
         print("NPCs initialized with positions:", [npc.position for npc in self.npcs])
 
         
+    # Game.py
+
     def update_npcs(self):
+        """
+        Update the position of NPCs and check for interactions with the player.
+        """
         for npc in self.npcs:
-            npc.move(self.current_maze)  # Move each NPC
+            npc.move()# Assuming self.npcs is a list of NPC objects
+            # NPC logic to move or update its state goes here
+            
+            # Check for collision with the player
+            if self.check_collision(self.player, npc):
+                self.player.take_damage(10)  # NPC deals 10 damage to the player
+                print(f"Player Health: {self.player.health}")
+
+            # If the player's health reaches zero, trigger game over
+            if not self.player.is_alive:
+                self.state = "GAME_OVER"
+                print("Game Over!")
+
 
 
     def handle_input(self):
@@ -203,7 +220,31 @@ class Game:
         self.draw_npcs()
         self.draw_items()
         pygame.display.flip()
+    # Game.py or inside Player/NPC class
     
+    def check_collision(self, player, npc):
+        """
+        Check if the player and NPC collide using pygame.Rect for collision detection.
+        """
+        return player.rect.colliderect(npc.rect)  # Assuming both player and NPC have a `rect` attribute
+
+    def game_over(self):
+        """
+        Display the Game Over screen and handle quitting or restarting.
+        """
+        font = pygame.font.Font(None, 72)
+        text = font.render('Game Over', True, (255, 0, 0))
+        self.screen.blit(text, (self.screen.get_width() // 2 - 100, self.screen.get_height() // 2))
+        pygame.display.flip()
+
+        # Wait for the player to quit or restart
+        waiting = True
+        while waiting:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    waiting = False
+                    self.state = "QUIT"
+
     def main_loop(self):
         """
         Main game loop to keep the game running.
@@ -214,15 +255,24 @@ class Game:
                 if event.type == pygame.QUIT:
                     self.state = "QUIT"
                     return  # Exit the loop and quit the game
-
+            
             # Handle player input and update game state
             self.handle_input()
+
+            # Update NPCs (this includes checking collisions and handling damage)
             self.update_npcs()
-    
+
+            # Render the game (draw player, NPCs, items, etc.)
             self.render()
 
-            # Control the frame rate (set to 60 FPS)
-            self.clock.tick(5)  # Limit the frame rate to avoid overworking the CPU
+            # Limit the frame rate
+            self.clock.tick(20)
+
+            # Check if the game is over (player health is 0)
+            if not self.player.is_alive:
+                self.state = "GAME_OVER"
+                print("Game Over!")
+                return
 
         # Quit Pygame cleanly if the loop ends
         pygame.quit()
