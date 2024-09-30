@@ -1,3 +1,4 @@
+#game.py
 import os
 import pygame
 from AssetLoader import AssetLoader
@@ -6,7 +7,7 @@ from NPC import NPC
 from Maze import Maze
 from consumable_items import Consumable_items  # Import your item list
 import random
-
+from Actions    import Actions
 class Game:
     def __init__(self):
         base_dir = os.path.dirname(os.path.abspath(__file__))  # Get base directory
@@ -73,7 +74,13 @@ class Game:
         # Initialize NPCs (after maze and valid positions are set)
         self.initialize_npcs()
 
+        # Initialize actions with player, NPCs, and items after maze has been set
+        print(f"Current Maze: {self.current_maze}")
+        self.actions = Actions(self.player, self.npcs, self.items, self.current_maze, self.tile_size)
+
+
         print("Game initialized!")
+
 
 
     def load_mazes_from_directory(self, directory_path):
@@ -132,41 +139,42 @@ class Game:
         print("NPCs initialized with positions:", [npc.position for npc in self.npcs])
 
         
-    # Game.py
-
     def update_npcs(self):
-        """
-        Update the position of NPCs and check for interactions with the player.
-        """
         for npc in self.npcs:
-            npc.move()# Assuming self.npcs is a list of NPC objects
-            # NPC logic to move or update its state goes here
-            
-            # Check for collision with the player
-            if self.check_collision(self.player, npc):
-                self.player.take_damage(10)  # NPC deals 10 damage to the player
-                print(f"Player Health: {self.player.health}")
+            npc.move(self.current_maze)  # Move each NPC
+            # Check for collisions with the player
+            if self.player.rect.colliderect(npc.rect):
+                print(f"Collision detected between player and NPC at {npc.position}")
+                # Apply damage to both
+                self.player.take_damage(20)
+                npc.take_damage(20)
+                print(f"After collision: Player health: {self.player.health}, NPC health: {npc.health}")
 
-            # If the player's health reaches zero, trigger game over
-            if not self.player.is_alive:
-                self.state = "GAME_OVER"
-                print("Game Over!")
-
-
+        
 
     def handle_input(self):
-        """
-        Handle player input for movement (WASD or arrow keys).
-        """
         keys = pygame.key.get_pressed()
         if keys[pygame.K_UP]:
+            print("Player moving up")  # Add debug to confirm input
             self.player.move("up", self.current_maze)
         elif keys[pygame.K_DOWN]:
+            print("Player moving down")  # Add debug to confirm input
             self.player.move("down", self.current_maze)
         elif keys[pygame.K_LEFT]:
+            print("Player moving left")  # Add debug to confirm input
             self.player.move("left", self.current_maze)
         elif keys[pygame.K_RIGHT]:
+            print("Player moving right")  # Add debug to confirm input
             self.player.move("right", self.current_maze)
+    def check_player_npc_collisions(self):
+        """
+        Check if the player collides with any NPCs, and if so, apply damage.
+        """
+        for npc in self.npcs:
+            if self.player.rect.colliderect(npc.rect):  # Check collision
+                print(f"Collision detected between player and NPC at {npc.position}")
+                self.player.take_damage(10)  # Apply damage to the player
+                npc.take_damage(10)  # Apply damage to the NPC
 
     def draw_player(self):
         """
@@ -179,11 +187,18 @@ class Game:
         Draw NPCs on the screen.
         """
         for npc in self.npcs:
-            # Only draw NPCs with valid positions
-            if npc.position and len(npc.position) == 2 and npc.position != (None, None):
+            # Only draw NPCs that are alive and have a valid position and rect
+            if npc.is_alive and npc.rect is not None:
                 npc.draw(self.screen)
+                pygame.draw.rect(self.screen, (0, 255, 0), npc.rect, 2)  # Green rectangles for alive NPCs
             else:
-                print(f"Skipping NPC with invalid position: {npc.position}")
+                print(f"Skipping NPC at {npc.position} because it is dead or has an invalid position.")
+
+    def remove_dead_npcs(self):
+        """
+        Remove all NPCs that are dead from the game.
+        """
+        self.npcs = [npc for npc in self.npcs if npc.is_alive]  # Only keep alive NPCs
 
     def draw_items(self):
         """
@@ -220,59 +235,31 @@ class Game:
         self.draw_npcs()
         self.draw_items()
         pygame.display.flip()
-    # Game.py or inside Player/NPC class
-    
-    def check_collision(self, player, npc):
-        """
-        Check if the player and NPC collide using pygame.Rect for collision detection.
-        """
-        return player.rect.colliderect(npc.rect)  # Assuming both player and NPC have a `rect` attribute
+        pygame.draw.rect(self.screen, (255, 0, 0), self.player.rect, 2)  # Red rectangle for the player
+        for npc in self.npcs:
+            pygame.draw.rect(self.screen, (0, 255, 0), npc.rect, 2)  # Green rectangles for the NPCs
 
-    def game_over(self):
-        """
-        Display the Game Over screen and handle quitting or restarting.
-        """
-        font = pygame.font.Font(None, 72)
-        text = font.render('Game Over', True, (255, 0, 0))
-        self.screen.blit(text, (self.screen.get_width() // 2 - 100, self.screen.get_height() // 2))
-        pygame.display.flip()
-
-        # Wait for the player to quit or restart
-        waiting = True
-        while waiting:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    waiting = False
-                    self.state = "QUIT"
-
+            pygame.display.flip()  # Update the screen
     def main_loop(self):
-        """
-        Main game loop to keep the game running.
-        """
         while self.state == "PLAYING":
-            # Handle Pygame events
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.state = "QUIT"
-                    return  # Exit the loop and quit the game
+                    return
+            print(f"Player Position: {self.player.position}, Player Rect: {self.player.rect}")
+            for idx, npc in enumerate(self.npcs):
+                print(f"NPC {idx} Position: {npc.position}, NPC Rect: {npc.rect}")
             
-            # Handle player input and update game state
-            self.handle_input()
+            # This is the correct place to check collisions after all movements
+        
 
-            # Update NPCs (this includes checking collisions and handling damage)
-            self.update_npcs()
+            self.handle_input()    # Handle player inputs like movement
+            self.update_npcs()     # Update NPC positions or behavior
+            self.remove_dead_npcs()
+            self.render()          # Render everything on the screen
+            self.actions.check_player_npc_collisions()
+            print(f"Collision detected at: {npc.position}. Player health: {self.player.health}, NPC health: {npc.health}")
 
-            # Render the game (draw player, NPCs, items, etc.)
-            self.render()
+            self.clock.tick(5)
 
-            # Limit the frame rate
-            self.clock.tick(20)
-
-            # Check if the game is over (player health is 0)
-            if not self.player.is_alive:
-                self.state = "GAME_OVER"
-                print("Game Over!")
-                return
-
-        # Quit Pygame cleanly if the loop ends
         pygame.quit()

@@ -43,13 +43,13 @@ class Item:
             print(f"Attempted to place item at invalid position: {position}")
             raise ValueError(f"Invalid position: {position} is not valid in the maze layout.")
 
-        def draw(self, screen):
-            """
-            Draw the item on the screen if its position is valid.
-            """
-            if self.position and len(self.position) == 2 and self.position != (None, None):
-                x, y = self.position
-                screen.blit(self.image, (x * self.tile_size, y * self.tile_size))  # Apply tile size scaling
-            else:
-                print(f"Skipping item with invalid position: {self.position}")
+    def draw(self, screen):
+        """
+        Draw the item on the screen if its position is valid.
+        """
+        if self.position and len(self.position) == 2 and self.position != (None, None):
+            x, y = self.position
+            screen.blit(self.image, (x * self.tile_size, y * self.tile_size))  # Apply tile size scaling
+        else:
+            print(f"Skipping item with invalid position: {self.position}")
 

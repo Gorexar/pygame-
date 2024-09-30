@@ -1,7 +1,4 @@
-#Items implimented
-#all game files split up 
-# next fix is npcs and items failure to spawn/crash game with no value given random generation of items and npcs broken?
-
+#Main.py
 
 
 import os
@@ -13,13 +10,12 @@ from item_attributes import ItemAttributes
 from ConsumableItem import ConsumableItem
 from Player import Player
 from NPC import NPC
-from Actions import Actions
 from Game import Game
 from consumable_items import Consumable_items
+from Actions import Actions
 
 
-
-def main():
+def  main():
     """
     Main function to initialize and start the game.
     This function performs the following steps:

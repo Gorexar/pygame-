@@ -1,3 +1,4 @@
+#maze.py
 import random
 import json
 
@@ -78,6 +79,7 @@ class Maze:
 
         # Check if the tile at the position is walkable (1)
         if self.layout[row][col] == 1:
+          
             return True
         else:
             print(f"Position {position} is invalid: Tile value is {self.layout[row][col]}")
@@ -149,5 +151,5 @@ class Maze:
                 print(f"Spawning NPC at random valid position: {npc_position}")
 
             npc.set_position(npc_position)
-        
+            self.rect.topleft = (self.position[1] * self.tile_size, self.position[0] * self.tile_size)
         return npcs
