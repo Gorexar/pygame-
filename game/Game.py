@@ -222,7 +222,7 @@ class Game:
             self.render()
 
             # Control the frame rate (set to 60 FPS)
-            self.clock.tick(60)  # Limit the frame rate to avoid overworking the CPU
+            self.clock.tick(5)  # Limit the frame rate to avoid overworking the CPU
 
         # Quit Pygame cleanly if the loop ends
         pygame.quit()
