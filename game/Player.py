@@ -8,25 +8,15 @@ class Player:
         self.image = image  # The player's image
         self.position = position  # The player's position (row, col) in the grid
         self.tile_size = tile_size  # Size of each tile in pixels
-        self.health = 10000  # Player's health
+        self.health = 45  # Player's health
         self.is_alive = True
         self.rect = pygame.Rect(self.position[1] * self.tile_size, self.position[0] * self.tile_size, tile_size, tile_size)
     def draw(self, screen):
-        """
-        Draws the player on the given screen.
-        Args:
-            screen (pygame.Surface): The surface on which the player will be drawn.
-        """
-        
+
         screen.blit(self.image, (self.position[1] * self.tile_size, self.position[0] * self.tile_size))
 
     def move(self, direction, maze):
-        """
-        Move the player in the given direction, checking maze boundaries.
-        
-        :param direction: The direction to move ('up', 'down', 'left', 'right').
-        :param maze: The maze object, used to validate the move.
-        """
+ 
         if direction not in ["up", "down", "left", "right"]:
             print(f"Invalid direction: {direction}. Use 'up', 'down', 'left', or 'right'.")
             return
@@ -59,7 +49,7 @@ class Player:
             print(f"Player took {amount} damage! Current health: {self.health}")
             # Temporary visual cue for damage (change player's color)
             self.image.fill((255, 0, 0))  # Flash red
-            pygame.time.delay(200)  # Keep the color for 200 ms
+            pygame.time.delay(50)  # Keep the color for 200 ms
             self.image.fill((255, 255, 255))  # Back to normal color
             if self.health <= 0:
                 self.health = 0

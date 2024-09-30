@@ -10,8 +10,7 @@ class NPC:
         self.position = tuple(position) if isinstance(position, list) else position
         self.tile_size = tile_size
         self.maze = maze
-        self.health = 50  # NPC's starting health
-        self.max_health = 50  # NPC's maximum health
+        self.health = 40  # NPC's starting health  # NPC's maximum health
         self.is_alive = True  # Is the NPC alive?
         self.move_delay = 2500  # Delay between NPC moves in milliseconds (50 seconds)
         self.last_move_time = pygame.time.get_ticks()

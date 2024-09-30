@@ -7,7 +7,7 @@ from NPC import NPC
 from Maze import Maze
 from consumable_items import Consumable_items  # Import your item list
 import random
-from Actions    import Actions
+
 class Game:
     def __init__(self):
         base_dir = os.path.dirname(os.path.abspath(__file__))  # Get base directory
@@ -75,8 +75,7 @@ class Game:
         self.initialize_npcs()
 
         # Initialize actions with player, NPCs, and items after maze has been set
-        print(f"Current Maze: {self.current_maze}")
-        self.actions = Actions(self.player, self.npcs, self.items, self.current_maze, self.tile_size)
+      
 
 
         print("Game initialized!")
@@ -102,7 +101,6 @@ class Game:
                     item_positions.append(maze_instance.item_positions)
                     npc_positions.append(maze_instance.npc_positions)
         return mazes, player_positions, item_positions, npc_positions
-
     def resize_images(self, images, tile_size, width, height):
         """
         Resize all images for the maze, player, NPCs, and items.
@@ -110,7 +108,6 @@ class Game:
         for key in images:
             images[key] = pygame.transform.scale(images[key], (tile_size, tile_size))
         images["background"] = pygame.transform.scale(images["background"], (width, height))
-   
     def initialize_npcs(self):
         valid_positions = self.current_maze.get_valid_positions()  # Get valid walkable positions from the maze
         self.npcs = []
@@ -136,22 +133,27 @@ class Game:
             npc = NPC(self.images["npc"], npc_position, self.tile_size, maze=self.current_maze)
             self.npcs.append(npc)
 
-        print("NPCs initialized with positions:", [npc.position for npc in self.npcs])
-
-        
+        print("NPCs initialized with positions:", [npc.position for npc in self.npcs]) 
     def update_npcs(self):
-        for npc in self.npcs:
-            npc.move(self.current_maze)  # Move each NPC
-            # Check for collisions with the player
-            if self.player.rect.colliderect(npc.rect):
-                print(f"Collision detected between player and NPC at {npc.position}")
-                # Apply damage to both
-                self.player.take_damage(20)
-                npc.take_damage(20)
-                print(f"After collision: Player health: {self.player.health}, NPC health: {npc.health}")
-
-        
-
+        """
+        Update the NPCs: Move them and handle collision with the player.
+        Remove dead NPCs from the game.
+        """
+        for npc in self.npcs[:]:  # Iterate over a copy to safely remove NPCs
+            if npc.is_alive:
+                npc.move(self.current_maze)  # Move NPCs that are still alive
+                # Check for collisions between player and NPC
+                if self.player.rect.colliderect(npc.rect):
+                    print(f"Collision detected between player and NPC at {npc.position}")
+                    # Apply damage to both player and NPC
+                    self.player.take_damage(20)
+                    npc.take_damage(20)
+                    print(f"After collision: Player health: {self.player.health}, NPC health: {npc.health}")
+                    if not npc.is_alive:
+                        print(f"NPC at {npc.position} has died and will be removed.")
+                        self.npcs.remove(npc)  # Remove dead NPC from list
+            else:
+                self.npcs.remove(npc)  # Ensure dead NPCs are removed from game
     def handle_input(self):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_UP]:
@@ -166,22 +168,11 @@ class Game:
         elif keys[pygame.K_RIGHT]:
             print("Player moving right")  # Add debug to confirm input
             self.player.move("right", self.current_maze)
-    def check_player_npc_collisions(self):
-        """
-        Check if the player collides with any NPCs, and if so, apply damage.
-        """
-        for npc in self.npcs:
-            if self.player.rect.colliderect(npc.rect):  # Check collision
-                print(f"Collision detected between player and NPC at {npc.position}")
-                self.player.take_damage(10)  # Apply damage to the player
-                npc.take_damage(10)  # Apply damage to the NPC
-
     def draw_player(self):
         """
         Draw the player on the screen.
         """
         self.player.draw(self.screen)
-
     def draw_npcs(self):
         """
         Draw NPCs on the screen.
@@ -193,19 +184,58 @@ class Game:
                 pygame.draw.rect(self.screen, (0, 255, 0), npc.rect, 2)  # Green rectangles for alive NPCs
             else:
                 print(f"Skipping NPC at {npc.position} because it is dead or has an invalid position.")
-
     def remove_dead_npcs(self):
         """
         Remove all NPCs that are dead from the game.
         """
         self.npcs = [npc for npc in self.npcs if npc.is_alive]  # Only keep alive NPCs
-
     def draw_items(self):
         """
         Draw all items on the screen.
         """
         for item in self.items.values():  # Assuming self.items is a dictionary
             item.draw(self.screen)
+    def pause_game(self, message):
+        """
+        Pause the game and display a game-over message.
+        """
+        font = pygame.font.SysFont("Arial", 48)
+        text_surface = font.render(message, True, (255, 0, 0))  # Red text for Game Over
+        text_rect = text_surface.get_rect(center=(self.WIDTH // 2, self.HEIGHT // 2))
+
+        self.screen.blit(self.images["background"], (0, 0))  # Redraw background
+        self.screen.blit(text_surface, text_rect)
+        pygame.display.flip()
+
+        paused = True
+        while paused:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    paused = False
+                    self.state = "QUIT"
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                    paused = False
+                    self.restart_game()  # Call restart_game to reset everything
+    def restart_game(self):
+            """
+            Restart the game by resetting player, NPCs, items, and maze state.
+            """
+            self.player.position = self.player_positions[self.current_maze_index]  # Reset player position
+            self.player.rect.topleft = (self.player.position[0] * self.tile_size, self.player.position[1] * self.tile_size)
+            
+            # Reload the NPCs and other game elements
+            self.current_maze = Maze(
+                self.mazes[self.current_maze_index],
+                self.player_positions[self.current_maze_index],
+                self.npc_positions[self.current_maze_index],
+                self.item_positions[self.current_maze_index]
+            )
+            self.update_npcs()  # Update NPCs
+            self.initialize_npcs()  # Reinitialize NPCs
+            self.items = self.current_maze.generate_items(Consumable_items)  # Reinitialize items
+            self.state = "PLAYING"  # Set state back to PLAYING
+
+            print("Game restarted!")
 
     def draw_maze(self):
         """
@@ -224,7 +254,37 @@ class Game:
                     self.screen.blit(self.images["wall"], (col * self.tile_size, row * self.tile_size))
                 elif tile_value == 0:  # Border
                     self.screen.blit(self.images["border"], (col * self.tile_size, row * self.tile_size))
+    def check_player_npc_collisions(self):
+        """
+        Check if the player collides with any NPCs, and if so, apply damage.
+        """
+        npc_collision_detected = False
+        
+        # Only check NPCs that are alive for collisions
+        for npc in [npc for npc in self.npcs if npc.is_alive]:
+            if self.player.rect.colliderect(npc.rect):
+                print(f"Collision detected between player and NPC at {npc.position}")
+                npc_collision_detected = True
 
+        if not npc_collision_detected:
+            print("No NPC collision detected. Checking for environmental collision...")
+            self.check_environment_collisions()
+    def check_environment_collisions(self):
+        """
+        Check if the player is colliding with the environment (e.g., walls, borders).
+        """
+        # Iterate through the maze layout and check for solid tiles (e.g., walls)
+        for row in range(len(self.current_maze.layout)):
+            for col in range(len(self.current_maze.layout[row])):
+                tile_value = self.current_maze.layout[row][col]
+                
+                # Assuming 5 represents a wall, adjust based on your maze design
+                if tile_value == 5:  # Wall tile value
+                    wall_rect = pygame.Rect(col * self.tile_size, row * self.tile_size, self.tile_size, self.tile_size)
+                    
+                    if self.player.rect.colliderect(wall_rect):
+                        print(f"Player collided with a wall at position ({row}, {col}).")
+                        return  # Player collides with a wall; no further checks needed    
     def render(self):
         """
         Render the game visuals.
@@ -238,28 +298,26 @@ class Game:
         pygame.draw.rect(self.screen, (255, 0, 0), self.player.rect, 2)  # Red rectangle for the player
         for npc in self.npcs:
             pygame.draw.rect(self.screen, (0, 255, 0), npc.rect, 2)  # Green rectangles for the NPCs
-
             pygame.display.flip()  # Update the screen
+    
     def main_loop(self):
-        while self.state == "PLAYING":
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.state = "QUIT"
-                    return
-            print(f"Player Position: {self.player.position}, Player Rect: {self.player.rect}")
-            for idx, npc in enumerate(self.npcs):
-                print(f"NPC {idx} Position: {npc.position}, NPC Rect: {npc.rect}")
-            
-            # This is the correct place to check collisions after all movements
-        
+            while self.state == "PLAYING":
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        self.state = "QUIT"
+                        return
 
-            self.handle_input()    # Handle player inputs like movement
-            self.update_npcs()     # Update NPC positions or behavior
-            self.remove_dead_npcs()
-            self.render()          # Render everything on the screen
-            self.actions.check_player_npc_collisions()
-            print(f"Collision detected at: {npc.position}. Player health: {self.player.health}, NPC health: {npc.health}")
+                # Check if the player is dead, and pause the game
+                if self.player.health <= 0:
+                    self.state = "PAUSED"
+                    self.pause_game("Game Over! Press Enter to Restart")
 
-            self.clock.tick(5)
+                if self.state == "PLAYING":
+                    self.handle_input()  # Handle player inputs like movement
+                    self.update_npcs()   # Update NPC positions or behavior
+                    self.remove_dead_npcs()
+                    self.render()        # Render everything on the screen
+                    self.check_player_npc_collisions()
+                    self.clock.tick(5)
 
-        pygame.quit()
+            pygame.quit()

@@ -12,7 +12,7 @@ from Player import Player
 from NPC import NPC
 from Game import Game
 from consumable_items import Consumable_items
-from Actions import Actions
+
 
 
 def  main():
