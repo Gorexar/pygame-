@@ -25,7 +25,7 @@ Consumable_items = {
     ),
     "tiny_scratching_post": ConsumableItem(
         image=tiny_scratching_post_image,
-        position=(0, 0),  # Placeholder position, will be set later by the maze
+        position=(None),  # Placeholder position, will be set later by the maze
         tile_size=tile_size,
         item_name="tiny scratching post",
         item_size=1,

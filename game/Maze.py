@@ -52,12 +52,12 @@ class Maze:
         """
         Return a list of valid positions (not walls or obstacles) in the maze.
         
-        :return: A list of valid (row, col) positions where the tile is '1'.
+        :return: A list of valid (row, col) positions.
         """
         valid_positions = []
         for row in range(len(self.layout)):
             for col in range(len(self.layout[row])):
-                if self.layout[row][col] == 1:  # 1 represents a valid path
+                if self.layout[row][col] == 1:  # Only tiles with value 1 are valid
                     valid_positions.append((row, col))
         return valid_positions
 
@@ -95,26 +95,36 @@ class Maze:
         Place items in predefined or random valid locations in the maze.
         :param items: A dictionary of item objects.
         """
-        valid_positions = self.get_valid_positions()  # Get valid walkable spawn positions
+        valid_positions = self.get_valid_positions()  # Get valid walkable positions from the maze
+        item_positions = []
 
-        for idx, item in enumerate(items.values()):
-            item_position = self.item_positions[idx] if idx < len(self.item_positions) else None
+        for item_name, item in items.items():
+            item_position = item.position  # Get the item's position from its attributes
 
-            # If the item position is invalid, assign a random valid position
-            if not self.is_valid_position(item_position):
+            # Check if the item's position is None or invalid, and assign a random valid position if so
+            if item_position is None or not self.is_valid_position(item_position):
                 print(f"Invalid item position {item_position}. Assigning random valid position.")
                 if valid_positions:
-                    item_position = random.choice(valid_positions)
-                    valid_positions.remove(item_position)  # Remove to avoid duplicate spawn locations
+                    item_position = random.choice(valid_positions)  # Assign a random valid position
+                    valid_positions.remove(item_position)  # Remove to avoid duplicating positions
                 else:
-                    print("No valid positions left for items! Skipping this item.")
-                    continue
+                    print(f"No valid positions left for item '{item_name}'! Skipping item placement.")
+                    continue  # Skip this item if no valid positions are available
+            else:
+                print(f"Placing item '{item_name}' at valid position {item_position}")
 
-            # Set the valid position for the item
+            # Ensure the position is a tuple
+            if isinstance(item_position, list):
+                item_position = tuple(item_position)
+
+            # Set the item position and store it
             item.set_position(item_position)
-            print(f"Item '{item.item_name}' initialized at {item_position}")
+            item_positions.append(item_position)
+
+            print(f"Item '{item_name}' initialized at {item_position}")
 
         return items
+
     
     def generate_npcs(self, npcs):
         """
