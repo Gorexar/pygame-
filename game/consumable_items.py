@@ -1,8 +1,9 @@
+# consumable_items.py
 import os
 import pygame  # pygame is used for loading images
 from ConsumableItem import ConsumableItem  # Import the ConsumableItem class
 
-# Load actual image surfaces (Ensure the paths are correct)
+# Load item images
 food_image = pygame.image.load(os.path.join("images", "sprites", "food.png"))
 tiny_scratching_post_image = pygame.image.load(os.path.join("images", "sprites", "scratching_post.png"))
 treat_image = pygame.image.load(os.path.join("images", "sprites", "treat.png"))
@@ -11,11 +12,10 @@ catnip_image = pygame.image.load(os.path.join("images", "sprites", "catnip.png")
 
 tile_size = 50  # Define the size of each tile
 
-# Initialize the consumable items with a placeholder position (e.g., (0, 0))
+# Define consumable items without positions; positions will be set by the maze later
 Consumable_items = {
     "food": ConsumableItem(
         image=food_image,
-        position=(0, 0),  # Placeholder position, will be set later by the maze
         tile_size=tile_size,
         item_name="food",
         item_size=1,
@@ -25,18 +25,17 @@ Consumable_items = {
     ),
     "tiny_scratching_post": ConsumableItem(
         image=tiny_scratching_post_image,
-        position=(None),  # Placeholder position, will be set later by the maze
         tile_size=tile_size,
         item_name="tiny scratching post",
         item_size=1,
         item_type="object",
+        value=10,
         description="Sharpens claws"
     ),
     "treats": ConsumableItem(
         image=treat_image,
-        position=(0, 0),  # Placeholder position, will be set later by the maze
         tile_size=tile_size,
-        item_name="Treats",
+        item_name="treats",
         item_size=1,
         item_type="treat",
         value=50,
@@ -44,16 +43,15 @@ Consumable_items = {
     ),
     "medical_treats": ConsumableItem(
         image=medical_treat_image,
-        position=(0, 0),  # Placeholder position, will be set later by the maze
         tile_size=tile_size,
         item_name="medical treats",
         item_size=1,
         item_type="treat",
+        value=10,
         description="Cures poison & bleeding"
     ),
     "catnip": ConsumableItem(
         image=catnip_image,
-        position=(0, 0),  # Placeholder position, will be set later by the maze
         tile_size=tile_size,
         item_name="catnip",
         item_size=1,

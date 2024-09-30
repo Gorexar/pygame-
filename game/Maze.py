@@ -1,7 +1,7 @@
-import json
-import random
 import random
 import json
+
+from ConsumableItem import ConsumableItem
 
 class Maze:
     def __init__(self, layout, player_position, npc_positions, item_positions):
@@ -47,6 +47,7 @@ class Maze:
         except (FileNotFoundError, json.JSONDecodeError, ValueError) as e:
             print(f"Error loading maze from {file_path}: {e}")
             return None
+            
 
     def get_valid_positions(self):
         """
@@ -63,25 +64,19 @@ class Maze:
 
 
     def is_valid_position(self, position):
-        """
-        Check if a position is valid within the maze. Only positions with value `1` are valid.
-        The maze layout values:
-        - 1: valid path
-        - 3: wall (invalid)
-        - 5: obstacle (invalid)
-        """
-        # Ensure the position is a valid tuple
-        if not isinstance(position, tuple) or len(position) != 2 or position == (None, None):
+        # Ensure the position is a valid tuple and not (None, None)
+        if position is None or not isinstance(position, tuple) or len(position) != 2 or position == (None, None):
             print(f"Invalid position format or None values: {position}")
             return False
-
+        
         row, col = position
-
-        # Check if the position is within the bounds of the maze
+        
+        # Ensure the position is within the bounds of the maze
         if not (0 <= row < len(self.layout) and 0 <= col < len(self.layout[0])):
+            print(f"Position {position} is out of bounds.")
             return False
 
-        # Check if the tile at the position is a valid path (1)
+        # Check if the tile at the position is walkable (1)
         if self.layout[row][col] == 1:
             return True
         else:
@@ -89,67 +84,70 @@ class Maze:
             return False
 
 
-    
-    def generate_items(self, items):
-        """
-        Place items in predefined or random valid locations in the maze.
-        :param items: A dictionary of item objects.
-        """
-        valid_positions = self.get_valid_positions()  # Get valid walkable positions from the maze
-        item_positions = []
 
-        for item_name, item in items.items():
-            item_position = item.position  # Get the item's position from its attributes
 
-            # Check if the item's position is None or invalid, and assign a random valid position if so
-            if item_position is None or not self.is_valid_position(item_position):
-                print(f"Invalid item position {item_position}. Assigning random valid position.")
-                if valid_positions:
-                    item_position = random.choice(valid_positions)  # Assign a random valid position
-                    valid_positions.remove(item_position)  # Remove to avoid duplicating positions
-                else:
-                    print(f"No valid positions left for item '{item_name}'! Skipping item placement.")
-                    continue  # Skip this item if no valid positions are available
+    def generate_items(self, consumable_items_list):
+        """
+        Generate items in the maze based on predefined positions or randomly if none are available.
+
+        :param consumable_items_list: Dictionary of items to be placed.
+        :return: Dictionary of items with their positions set.
+        """
+        valid_positions = self.get_valid_positions()  # Get all valid positions (tiles with value of 1)
+
+        items = {}
+        max_attempts = 100  # Prevent infinite loops in case no valid position is found
+
+        for idx, (item_name, item_data) in enumerate(consumable_items_list.items()):
+            # Try to use a predefined position from the maze.json file
+            if idx < len(self.item_positions):
+                predefined_position = self.item_positions[idx]
             else:
-                print(f"Placing item '{item_name}' at valid position {item_position}")
+                predefined_position = None  # No predefined position available
 
-            # Ensure the position is a tuple
-            if isinstance(item_position, list):
-                item_position = tuple(item_position)
+            # If predefined position is valid, use it; otherwise, find a random position
+            if predefined_position and self.is_valid_position(predefined_position):
+                print(f"Using predefined valid position for item {item_name}: {predefined_position}")
+                item_data.position = predefined_position
+            else:
+                print(f"No valid predefined position for item {item_name}. Finding random position...")
+                random_position = None
+                attempts = 0
+                # Loop to find a valid random position
+                while not random_position or not self.is_valid_position(random_position):
+                    if attempts >= max_attempts:
+                        print(f"Failed to find valid position for item {item_name} after {max_attempts} attempts.")
+                        break
+                    random_position = random.choice(valid_positions)
+                    attempts += 1
+                print(f"Spawning item at random valid position: {random_position}")
+                item_data.position = random_position  # Set the random valid position
 
-            # Set the item position and store it
-            item.set_position(item_position)
-            item_positions.append(item_position)
-
-            print(f"Item '{item_name}' initialized at {item_position}")
+            # Add the item with its set position to the dictionary
+            items[item_name] = item_data
 
         return items
 
     
+   
+   
     def generate_npcs(self, npcs):
-        """
-        Place NPCs in predefined or random valid locations in the maze.
-        :param npcs: A list or dictionary of NPC objects.
-        """
         valid_positions = self.get_valid_positions()  # Get valid walkable positions from the maze
 
         for idx, npc in enumerate(npcs):
             npc_position = self.npc_positions[idx] if idx < len(self.npc_positions) else None
 
-            # Check if the position is None or invalid, and assign a random valid position if so
-            if not self.is_valid_position(npc_position):
-                print(f"Invalid NPC position: {npc_position}. Assigning random valid position.")
-                if valid_positions:
+            # Check if the predefined position is valid
+            if npc_position and self.is_valid_position(npc_position):
+                print(f"Using predefined valid position for NPC {idx}: {npc_position}")
+            else:
+                print(f"No valid predefined position for NPC {idx}. Finding random position...")
+                npc_position = None
+                while not npc_position or not self.is_valid_position(npc_position):
                     npc_position = random.choice(valid_positions)  # Assign a random valid position
-                    valid_positions.remove(npc_position)  # Remove from valid pool to avoid duplication
-                else:
-                    print("No valid positions left for NPCs!")
-                    continue  # Skip this NPC if no valid positions are available
+                valid_positions.remove(npc_position)  # Avoid duplicate NPCs on the same tile
+                print(f"Spawning NPC at random valid position: {npc_position}")
 
-            # Ensure npc_position is a tuple
-            npc_position = tuple(npc_position) if isinstance(npc_position, list) else npc_position
-
-            # Assign the NPC to the valid position
             npc.set_position(npc_position)
-
+        
         return npcs

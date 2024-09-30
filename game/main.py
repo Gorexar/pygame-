@@ -20,6 +20,19 @@ from consumable_items import Consumable_items
 
 
 def main():
+    """
+    Main function to initialize and start the game.
+    This function performs the following steps:
+    1. Determines the base directory where the script is located.
+    2. Creates paths for the 'mazes' and 'images' directories relative to the base directory.
+    3. Prints the list of files in the 'mazes' directory.
+    4. Loads a maze from a JSON file located in the 'mazes' directory.
+    5. If the maze is loaded successfully, it prints the player, NPC, and item positions.
+    6. Initializes the Pygame library.
+    7. Creates and initializes a Game object.
+    8. Starts the main game loop.
+    If the maze fails to load, it prints an error message.
+    """
     # Get the directory where this script is located
     base_dir = os.path.dirname(os.path.abspath(__file__))
 
