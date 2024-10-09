@@ -82,7 +82,7 @@ class Maze:
           
             return True
         else:
-            print(f"Position {position} is invalid: Tile value is {self.layout[row][col]}")
+            # print(f"Position {position} is invalid: Tile value is {self.layout[row][col]}") optional debug
             return False
 
 

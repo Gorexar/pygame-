@@ -24,7 +24,7 @@ class NPC:
         """Move the NPC after a delay, ensuring it moves only to valid positions."""
         # Ensure the current position is valid before moving
         if self.position is None or None in self.position:
-            print(f"NPC has invalid position: {self.position}. Skipping move.")
+            # print(f"NPC has invalid position: {self.position}. Skipping move.") optional debug
             return  # Skip movement if the position is invalid
 
         current_time = pygame.time.get_ticks()
@@ -51,8 +51,8 @@ class NPC:
             self.position = tuple(new_position)
             self.last_move_time = current_time  # Update the last move time
             self.rect.topleft = (self.position[1] * self.tile_size, self.position[0] * self.tile_size)
-        else:
-            print(f"NPC cannot move to invalid position: {new_position}")
+        # else:
+        #     print(f"NPC cannot move to invalid position: {new_position}") optional debug
 
 
     def is_move_valid(self, new_position):

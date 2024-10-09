@@ -8,8 +8,9 @@ class Player:
         self.image = image  # The player's image
         self.position = position  # The player's position (row, col) in the grid
         self.tile_size = tile_size  # Size of each tile in pixels
-        self.health = 45  # Player's health
+        self.health = 100  # Player's health
         self.is_alive = True
+        self.can_take_damage = True
         self.rect = pygame.Rect(self.position[1] * self.tile_size, self.position[0] * self.tile_size, tile_size, tile_size)
     def draw(self, screen):
 
@@ -45,15 +46,16 @@ class Player:
         Temporarily change player color when taking damage.
         """
         if self.is_alive:
-            self.health -= amount
-            print(f"Player took {amount} damage! Current health: {self.health}")
-            # Temporary visual cue for damage (change player's color)
-            self.image.fill((255, 0, 0))  # Flash red
-            pygame.time.delay(50)  # Keep the color for 200 ms
-            self.image.fill((255, 255, 255))  # Back to normal color
-            if self.health <= 0:
-                self.health = 0
-                self.die()
+            if self.can_take_damage:  # Only take damage if allowed
+                self.health -= amount
+                print(f"Player took {amount} damage! Current health: {self.health}")
+                # Temporary visual cue for damage (change player's color)
+                self.image.fill((255, 0, 0))  # Flash red
+                pygame.time.delay(50)  # Keep the color for 200 ms
+                self.image.fill((255, 255, 255))  # Back to normal color
+                if self.health <= 0:
+                    self.health = 0
+                    self.die()
             
 
     def die(self):
