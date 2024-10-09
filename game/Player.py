@@ -1,11 +1,13 @@
 #player.py
 import os
+from AssetLoader import AssetLoader
 import pygame  # pygame is used for loading images
 from Actions import Actions  # Import the Actions class
 class Player:
     def __init__(self, image, position, tile_size):
       
         self.image = image  # The player's image
+        self.original_image = image
         self.position = position  # The player's position (row, col) in the grid
         self.tile_size = tile_size  # Size of each tile in pixels
         self.health = 100  # Player's health
@@ -49,10 +51,7 @@ class Player:
             if self.can_take_damage:  # Only take damage if allowed
                 self.health -= amount
                 print(f"Player took {amount} damage! Current health: {self.health}")
-                # Temporary visual cue for damage (change player's color)
-                self.image.fill((255, 0, 0))  # Flash red
-                pygame.time.delay(50)  # Keep the color for 200 ms
-                self.image.fill((255, 255, 255))  # Back to normal color
+                pygame.display.update()
                 if self.health <= 0:
                     self.health = 0
                     self.die()

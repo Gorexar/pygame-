@@ -34,8 +34,6 @@ def  main():
 
     # Create paths relative to the base directory
     maze_dir = os.path.join(base_dir, 'mazes')
-    image_dir = os.path.join(base_dir, 'images')
-
     # Print files in the maze directory
     print("Files in mazes directory:", os.listdir(maze_dir))
 

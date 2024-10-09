@@ -73,7 +73,7 @@ class Game:
 
         # Initialize NPCs (after maze and valid positions are set)
         self.initialize_npcs()
-
+        self.initialize_player
         # Initialize actions with player, NPCs, and items after maze has been set
       
 
@@ -154,6 +154,19 @@ class Game:
                         self.npcs.remove(npc)  # Remove dead NPC from list
             else:
                 self.npcs.remove(npc)  # Ensure dead NPCs are removed from game
+                
+                
+    def initialize_player(self):
+        """
+        Initialize or reset the player's state.
+        This function resets the player's health, position, image, and any other attributes.
+        """
+        self.health = 100  # Reset player's health
+        self.is_alive = True  # Player is alive
+        self.can_take_damage = True  # Reset player's ability to take damage
+        self.image = self.original_image.copy()  # Restore the original image
+        self.rect.topleft = (self.position[1] * self.tile_size, self.position[0] * self.tile_size)  # Reset position          
+                
     def update_player(self):
         """
         Update the player's state, handle movement, and check for collisions.
@@ -165,7 +178,7 @@ class Game:
         
         # Handle player movement
         self.handle_input()  # Call the function to move the player based on input
-
+        
         # Check collisions with NPCs or environment
         self.check_player_npc_collisions()  # Check if player collides with any NPCs
         self.check_environment_collisions()  # Check if player collides with environment objects (e.g., walls, borders)
@@ -239,35 +252,7 @@ class Game:
                     paused = False
                     self.restart_game()  # Call restart_game to reset everything
                     
-    def restart_game(self):
-        """
-        Restart the game by resetting player, NPCs, items, and maze state.
-        """
-        # Reset player state
-        self.player.position = self.player_positions[self.current_maze_index]  # Reset player position
-        self.player.rect.topleft = (self.player.position[0] * self.tile_size, self.player.position[1] * self.tile_size)
-        self.player.health = 100  # Reset player health
-        self.player.is_alive = True  # Mark player as alive
-        self.player.can_take_damage = True  # Reset ability to take damage
-        
-        # Reload the current maze
-        self.current_maze = Maze(
-            self.mazes[self.current_maze_index],
-            self.player_positions[self.current_maze_index],
-            self.npc_positions[self.current_maze_index],
-            self.item_positions[self.current_maze_index]
-        )
-
-        # Reinitialize NPCs and items
-        self.initialize_npcs()  # Reinitialize NPCs at their starting positions
-        self.items = self.current_maze.generate_items(Consumable_items)  # Reinitialize items
-
-        # Set game state back to playing
-        self.state = "PLAYING"
-
-        print("Game restarted!")
-
-
+  
     def draw_maze(self):
         """
         Draw the maze layout on the screen.
@@ -331,6 +316,42 @@ class Game:
             pygame.draw.rect(self.screen, (0, 255, 0), npc.rect, 2)  # Green rectangles for the NPCs
             pygame.display.flip()  # Update the screen
     
+    
+    def restart_game(self):
+        """
+        Restart the game by resetting player, NPCs, items, and maze state.
+        """
+        # Reset player state
+        self.player.position = self.player_positions[self.current_maze_index]  # Reset player position
+        self.player.rect.topleft = (self.player.position[1] * self.tile_size, self.player.position[0] * self.tile_size)
+        self.player.image = self.player.original_image
+        self.player.health = 100  # Reset player health
+        self.player.is_alive = True  # Mark player as alive
+        self.player.can_take_damage = True  # Allow player to take damage again
+        
+        # Restore the player's image to the original image (non-damage version)
+        self.player.image = self.player.original_image  # Reset the player's image to the original one
+        self.player.rect = self.player.image.get_rect(topleft=(self.player.position[1] * self.tile_size, self.player.position[0] * self.tile_size))
+
+        # Reload the current maze
+        self.current_maze = Maze(
+            self.mazes[self.current_maze_index],
+            self.player_positions[self.current_maze_index],
+            self.npc_positions[self.current_maze_index],
+            self.item_positions[self.current_maze_index]
+        )
+
+        # Reinitialize NPCs and items
+        self.initialize_npcs()  # Reinitialize NPCs at their starting positions
+        self.initialize_player # Reinitialize player at starting position
+        self.items = self.current_maze.generate_items(Consumable_items)  # Reinitialize items
+
+        # Set game state back to playing
+        self.state = "PLAYING"
+
+        print("Game restarted!")
+
+        
     def main_loop(self):
         while self.state == "PLAYING":
             for event in pygame.event.get():
